@@ -1,18 +1,24 @@
 {
-    "name": "micschk/silverstripe-filterablearchive",
-    "description": "This module decorates pages with configurable fields to filter them by. Handy for newsitems & blogs, etc.",
-    "type": "silverstripe-module",
-    "keywords": ["silverstripe", "filter", "archive", "news"],
-    "authors": [
+  "name": "restruct/silverstripe-filterablearchive",
+  "description": "This module decorates pages with configurable fields to filter them by. Handy for newsitems & blogs, etc.",
+  "type": "silverstripe-vendormodule",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "silverstripe",
+    "filter",
+    "archive",
+    "news"
+  ],
+  "authors": [
     {
-        "name": "micschk"
-    }],
-    "require": {
-        "silverstripe/framework": "~3.0",
-		"silverstripe/cms": "~3.0"
-    },
-	"extra": {
-		"installer-name": "filterablearchive"
-	}
-    
+      "name": "restruct"
+    }
+  ],
+  "require": {
+    "silverstripe/framework": "^4",
+    "silverstripe/framework": "^4"
+  },
+  "extra": {
+    "installer-name": "filterablearchive"
+  }
 }
