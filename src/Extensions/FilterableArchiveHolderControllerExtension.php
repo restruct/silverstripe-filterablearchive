@@ -14,25 +14,26 @@ use SilverStripe\ORM\FieldType\DBField;
 /**
  * Class FilterableArchiveHolderControllerExtension
  *
- * @TODO: make filtering by Date and Tag and Cat work simultaneously (switch to form.submit + GET vars in URL instead of URL params)
+ * @TODO    : make filtering by Date and Tag and Cat work simultaneously (switch to form.submit + GET vars in URL
+ *          instead of URL params)
  *
  * @package Restruct\Silverstripe\FilterableArchive
  */
 class FilterableArchiveHolderControllerExtension extends Extension
 {
-    private static $allowed_actions = array(
+    private static $allowed_actions = [
         'archive', # renamed to 'date'
         'date',
         'tag',
-        'cat'
-    );
+        'cat',
+    ];
 
-    private static $url_handlers = array(
+    private static $url_handlers = [
         'archive/$Year!/$Month/$Day' => 'date', # renamed to 'date'
-        'date/$Year!/$Month/$Day' => 'date',
-        'tag/$Tag!' => 'tag',
-        'cat/$Category!' => 'cat',
-    );
+        'date/$Year!/$Month/$Day'    => 'date',
+        'tag/$Tag!'                  => 'tag',
+        'cat/$Category!'             => 'cat',
+    ];
 
     /**
      * Renders an archive for a specificed date. This can be by year or year/month
@@ -46,17 +47,18 @@ class FilterableArchiveHolderControllerExtension extends Extension
         $day = $this->owner->getArchiveDay();
 
         // If an invalid month has been passed, we can return a 404.
-        if ($this->owner->request->param("Month") && !$month) {
+        if ( $this->owner->request->param("Month") && !$month ) {
             return $this->owner->httpError(404, "Not Found");
         }
 
         // Check for valid day
-        if ($month && $this->owner->request->param("Day") && !$day) {
+        if ( $month && $this->owner->request->param("Day") && !$day ) {
             return $this->owner->httpError(404, "Not Found");
         }
 
-        if ($year) {
+        if ( $year ) {
             $this->owner->Items = $this->owner->getDateFilteredArchiveItems($year, $month, $day);
+
             return $this->owner->render();
         } else {
             return $this->owner->redirect($this->owner->AbsoluteLink(), 303); //301: movedperm, 302: movedtemp, 303: see other
@@ -71,12 +73,15 @@ class FilterableArchiveHolderControllerExtension extends Extension
     public function tag()
     {
         $tag = $this->owner->getCurrentTag();
-        if ($tag) {
+        if ( $tag ) {
             $this->owner->Items = $tag->Pages();
+
             return $this->owner->render();
         }
+
         return $this->owner->httpError(404, "Not Found");
     }
+
     /**
      * Renders the blog posts for a given category
      *
@@ -85,10 +90,12 @@ class FilterableArchiveHolderControllerExtension extends Extension
     public function cat()
     {
         $category = $this->owner->getCurrentCategory();
-        if ($category) {
+        if ( $category ) {
             $this->owner->Items = $category->Pages();
+
             return $this->owner->render();
         }
+
         return $this->owner->httpError(404, "Not Found");
     }
 
@@ -100,9 +107,9 @@ class FilterableArchiveHolderControllerExtension extends Extension
     /**
      * Returns items for a given date period.
      *
-     * @param $year int
+     * @param $year  int
      * @param $month int
-     * @param $dat int
+     * @param $dat   int
      *
      * @return DataList
      **/
@@ -114,27 +121,27 @@ class FilterableArchiveHolderControllerExtension extends Extension
 
         // get items filtered by date and then filter by cat
         $filteredDate = $this->owner->request->requestVar('date');
-        if($this->owner->ArchiveActive() && $filteredDate){
-            list($year, $month, $day) = array_pad(explode('-', $filteredDate), 3, null);
+        if ( $this->owner->ArchiveActive() && $filteredDate ) {
+            [ $year, $month, $day ] = array_pad(explode('-', $filteredDate), 3, null);
             $dateField = Config::inst()->get($this->owner->className, 'managed_object_date_field');
 
             $dateFilter = [];
-            if($year) $dateFilter["YEAR(\"{$dateField}\")"] = $year;
-            if($month) $dateFilter["MONTH(\"{$dateField}\")"] = $month;
-            if($day) $dateFilter["DAY(\"{$dateField}\")"] = $day;
-            if(count($dateFilter)){
+            if ( $year ) $dateFilter[ "YEAR(\"{$dateField}\")" ] = $year;
+            if ( $month ) $dateFilter[ "MONTH(\"{$dateField}\")" ] = $month;
+            if ( $day ) $dateFilter[ "DAY(\"{$dateField}\")" ] = $day;
+            if ( count($dateFilter) ) {
                 $items = $items->where($dateFilter);
             }
         }
         // filter by Cat
         $category = $this->owner->request->requestVar('cat');
-        if($category && $catObj = $this->owner->Categories()->filter("URLSegment", $category)->first()) {
+        if ( $category && $catObj = $this->owner->Categories()->filter("URLSegment", $category)->first() ) {
             $IDs = $catObj->MappedPages()->column('ItemID');
             $items = $items->filter('ID', count($IDs) ? $IDs : -1);
         }
         // filter by Tag
         $tag = $this->owner->request->requestVar('tag');
-        if($tag && $tagObj = $this->owner->Tags()->filter("URLSegment", $tag)->first()) {
+        if ( $tag && $tagObj = $this->owner->Tags()->filter("URLSegment", $tag)->first() ) {
             $IDs = $tagObj->MappedPages()->column('ItemID');
             $items = $items->filter('ID', count($IDs) ? $IDs : -1);
         }
@@ -153,7 +160,9 @@ class FilterableArchiveHolderControllerExtension extends Extension
     public function getItemsFilteredByCatOrTag($catOrTagObj, $items = null)
     {
         $class = $this->owner->config()->managed_object_class;
-        if ( !$items ) $items = $this->owner->getItems();
+        if ( !$items ) {
+            $items = $this->owner->getItems();
+        }
 
         // if Items = ArrayList (not DataList), filterby callback (cause ->where() doesn't exist on ArrayList)
         // TMP fix: somehow FW insists on filtering on 'DataObject' instead of going through many_many() for the correct class...
@@ -162,7 +171,9 @@ class FilterableArchiveHolderControllerExtension extends Extension
             $IDs = $catOrTagObj->Items()->column('ID');
 //            $IDs = $catOrTagObj->getManyManyComponents('Items')->column('ID');
 //            var_dump($IDs);die();
-            return $items->filter('ID', $IDs);
+            if ( $IDs ) {
+                return $items->filter('ID', $IDs);
+            }
 
             // ArrayList, filter by callback ($catOrTag has to have an ID for this to work)
         } else {
@@ -280,11 +291,12 @@ class FilterableArchiveHolderControllerExtension extends Extension
 //        $items = new PaginatedList($this->owner->Items, $this->owner->request);
         $items = new PaginatedList($this->owner->getFilteredArchiveItemsNew(), $this->owner->request);
         // If pagination is set to '0' then no pagination will be shown.
-        if ($this->owner->ItemsPerPage > 0) {
+        if ( $this->owner->ItemsPerPage > 0 ) {
             $items->setPageLength($this->owner->ItemsPerPage);
         } else {
             $items->setPageLength($this->owner->getItems()->count());
         }
+
         return $items;
     }
 
