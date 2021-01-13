@@ -6,6 +6,8 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Convert;
 use SilverStripe\Core\Extension;
+use SilverStripe\Dev\Debug;
+use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\PaginatedList;
@@ -171,10 +173,13 @@ class FilterableArchiveHolderControllerExtension extends Extension
             $IDs = $catOrTagObj->Items()->column('ID');
 //            $IDs = $catOrTagObj->getManyManyComponents('Items')->column('ID');
 //            var_dump($IDs);die();
+
+
             if ( $IDs ) {
                 return $items->filter('ID', $IDs);
             }
 
+            return ArrayList::create();
             // ArrayList, filter by callback ($catOrTag has to have an ID for this to work)
         } else {
             return $items->filterByCallback(
