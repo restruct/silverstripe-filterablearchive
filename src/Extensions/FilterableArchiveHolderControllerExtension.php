@@ -33,12 +33,12 @@ class FilterableArchiveHolderControllerExtension extends Extension
         'tag/$Tag!' => 'tag',
         'cat/$Category!' => 'cat',
     );
-    
+
     /**
      * Renders an archive for a specificed date. This can be by year or year/month
      *
      * @return HTTPResponse
-    **/
+     **/
     public function date()
     {
         $year = $this->owner->getArchiveYear();
@@ -62,12 +62,12 @@ class FilterableArchiveHolderControllerExtension extends Extension
             return $this->owner->redirect($this->owner->AbsoluteLink(), 303); //301: movedperm, 302: movedtemp, 303: see other
         }
     }
-    
+
     /**
      * Renders the blog posts for a given tag.
      *
      * @return HTTPResponse
-    **/
+     **/
     public function tag()
     {
         $tag = $this->owner->getCurrentTag();
@@ -81,7 +81,7 @@ class FilterableArchiveHolderControllerExtension extends Extension
      * Renders the blog posts for a given category
      *
      * @return HTTPResponse
-    **/
+     **/
     public function cat()
     {
         $category = $this->owner->getCurrentCategory();
@@ -90,6 +90,11 @@ class FilterableArchiveHolderControllerExtension extends Extension
             return $this->owner->render();
         }
         return $this->owner->httpError(404, "Not Found");
+    }
+
+    public function getFilteredArchiveItems()
+    {
+        return $this->getFilteredArchiveItemsNew();
     }
 
     /**
@@ -143,6 +148,38 @@ class FilterableArchiveHolderControllerExtension extends Extension
 
         return $items;
     }
+
+
+    public function getItemsFilteredByCatOrTag($catOrTagObj, $items = null)
+    {
+        $class = $this->owner->config()->managed_object_class;
+        if ( !$items ) $items = $this->owner->getItems();
+
+        // if Items = ArrayList (not DataList), filterby callback (cause ->where() doesn't exist on ArrayList)
+        // TMP fix: somehow FW insists on filtering on 'DataObject' instead of going through many_many() for the correct class...
+        if ( $items instanceof DataList ) {
+//            var_dump($catOrTagObj->many_many('Items'));die();
+            $IDs = $catOrTagObj->Items()->column('ID');
+//            $IDs = $catOrTagObj->getManyManyComponents('Items')->column('ID');
+//            var_dump($IDs);die();
+            return $items->filter('ID', $IDs);
+
+            // ArrayList, filter by callback ($catOrTag has to have an ID for this to work)
+        } else {
+            return $items->filterByCallback(
+                function ($item, $list) use ($catOrTagObj) {
+                    if ( $catOrTagObj instanceof FilterCategory ) {
+                        $hasToBeIn = $item->Categories()->column('ID');
+                    } else {
+                        $hasToBeIn = $item->Tags()->column('ID');
+                    }
+
+                    return in_array($catOrTagObj->ID, $hasToBeIn);
+                });
+        }
+    }
+
+
 
 //    /**
 //     * Returns items for a given date period.
@@ -232,12 +269,12 @@ class FilterableArchiveHolderControllerExtension extends Extension
 //                });
 //        }
 //    }
-    
+
     /**
      * Returns a list of paginated blog posts based on the blogPost dataList
      *
      * @return PaginatedList
-    **/
+     **/
     public function PaginatedItems()
     {
 //        $items = new PaginatedList($this->owner->Items, $this->owner->request);
@@ -250,7 +287,7 @@ class FilterableArchiveHolderControllerExtension extends Extension
         }
         return $items;
     }
-    
+
 //    /**
 //     * Fetches the archive year from the url
 //     *
