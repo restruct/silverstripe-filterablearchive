@@ -39,6 +39,7 @@ class FilterableArchiveHolderExtension extends SiteTreeExtension
 
     private static $db = [
         'CategoriesTitle' => 'Varchar',
+        'TagsTitle'       => 'Varchar',
         'ItemsPerPage'    => DBInt::class,
         'ArchiveUnit'     => DBEnum::class . '("year, month, day")',
     ];
@@ -110,6 +111,7 @@ class FilterableArchiveHolderExtension extends SiteTreeExtension
         }
 
         if ( Config::inst()->get($this->owner->className, 'tags_active') ) {
+            $fields->addFieldToTab($insertOnTab, TextField::create('TagsTitle'), $insertBefore);
             $fields->addFieldToTab($insertOnTab,
                 $tags = GridField::create(
                     "Tags",
