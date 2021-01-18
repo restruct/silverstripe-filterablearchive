@@ -1,4 +1,8 @@
 SilverStripe\ORM\DatabaseAdmin:
   classname_value_remapping:
     FilterableCategory: 'Restruct\SilverStripe\FilterableArchive\FilterableCategory'
+    Restruct\Silverstripe\FilterableArchive\FilterableCategory: 'Restruct\SilverStripe\FilterableArchive\FilterableCategory'
     FilterableTag: 'Restruct\SilverStripe\FilterableArchive\FilterableTag'
+    Restruct\Silverstripe\FilterableArchive\FilterableTag: 'Restruct\SilverStripe\FilterableArchive\FilterableTag'
+    FilterMapping: 'Restruct\SilverStripe\FilterableArchive\FilterMapping'
+    Restruct\Silverstripe\FilterableArchive\FilterMapping: 'Restruct\SilverStripe\FilterableArchive\FilterMapping'

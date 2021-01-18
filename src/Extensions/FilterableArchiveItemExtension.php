@@ -1,6 +1,6 @@
 <?php
 
-namespace Restruct\Silverstripe\FilterableArchive;
+namespace Restruct\SilverStripe\FilterableArchive;
 
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Forms\FieldList;

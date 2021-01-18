@@ -1,7 +1,10 @@
 mappings:
-  GridFieldAddByDBField: Restruct\Silverstripe\FilterableArchive\GridFieldAddByDBField
-  FilterCategory: Restruct\Silverstripe\FilterableArchive\FilterCategory
-  FilterTag: Restruct\Silverstripe\FilterableArchive\FilterTag
-  FilterableArchiveItemExtension: Restruct\Silverstripe\FilterableArchive\FilterableArchiveItemExtension
-  FilterableArchiveHolder_ControllerExtension: Restruct\Silverstripe\FilterableArchive\FilterableArchiveHolder_ControllerExtension
-  FilterableArchiveHolderExtension: Restruct\Silverstripe\FilterableArchive\FilterableArchiveHolderExtension
+  FilterableArchiveItemExtension: Restruct\SilverStripe\FilterableArchive\FilterableArchiveItemExtension
+  FilterableArchiveHolder_ControllerExtension: Restruct\SilverStripe\FilterableArchive\FilterableArchiveHolder_ControllerExtension
+  FilterableArchiveHolderExtension: Restruct\SilverStripe\FilterableArchive\FilterableArchiveHolderExtension
+  FilterableCategory: 'Restruct\SilverStripe\FilterableArchive\FilterableCategory'
+  Restruct\Silverstripe\FilterableArchive\FilterableCategory: 'Restruct\SilverStripe\FilterableArchive\FilterableCategory'
+  FilterableTag: 'Restruct\SilverStripe\FilterableArchive\FilterableTag'
+  Restruct\Silverstripe\FilterableArchive\FilterableTag: 'Restruct\SilverStripe\FilterableArchive\FilterableTag'
+  FilterMapping: 'Restruct\SilverStripe\FilterableArchive\FilterMapping'
+  Restruct\Silverstripe\FilterableArchive\FilterMapping: 'Restruct\SilverStripe\FilterableArchive\FilterMapping'

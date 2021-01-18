@@ -1,6 +1,6 @@
 <?php
 
-namespace Restruct\Silverstripe\FilterableArchive;
+namespace Restruct\SilverStripe\FilterableArchive;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Control\HTTPResponse;
@@ -19,7 +19,7 @@ use SilverStripe\ORM\FieldType\DBField;
  * @TODO    : make filtering by Date and Tag and Cat work simultaneously (switch to form.submit + GET vars in URL
  *          instead of URL params)
  *
- * @package Restruct\Silverstripe\FilterableArchive
+ * @package Restruct\SilverStripe\FilterableArchive
  */
 class FilterableArchiveHolderControllerExtension extends Extension
 {
