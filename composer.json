@@ -12,6 +12,9 @@
   "authors": [
     {
       "name": "restruct"
+    },
+    {
+      "name": "micschk"
     }
   ],
   "require": {
