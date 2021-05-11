@@ -4,13 +4,13 @@ namespace Restruct\SilverStripe\FilterableArchive;
 
 use SilverStripe\ORM\DataObject;
 
-class FilterMapping extends DataObject
+class FilterPropRelation extends DataObject
 {
-    private static $table_name = 'FilterMapping';
+    private static $table_name = 'FilterPropRelation';
 
     private static $has_one = [
         'Item' => DataObject::class, // Polymorphic has_one
-        'Tag'  => FilterTag::class,
-        'Cat'  => FilterCategory::class,
+        'Category' => FilterProp::class,
+        'Tag' => FilterProp::class,
     ];
 }

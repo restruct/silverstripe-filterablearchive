@@ -1,0 +1,7 @@
+mappings:
+  FilterableArchiveItemExtension: Restruct\SilverStripe\FilterableArchive\FilterableArchiveItemExtension
+  FilterableArchiveHolder_ControllerExtension: Restruct\SilverStripe\FilterableArchive\FilterableArchiveHolder_ControllerExtension
+  FilterableArchiveHolderExtension: Restruct\SilverStripe\FilterableArchive\FilterableArchiveHolderExtension
+  FilterableCategory: Restruct\SilverStripe\FilterableArchive\FilterableCategory
+  FilterableTag: Restruct\SilverStripe\FilterableArchive\FilterableTag
+  FilterMapping: Restruct\SilverStripe\FilterableArchive\FilterMapping

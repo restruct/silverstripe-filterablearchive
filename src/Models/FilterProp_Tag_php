@@ -1,0 +1,31 @@
+<?php
+
+namespace Restruct\SilverStripe\FilterableArchive;
+
+use Restruct\SilverStripe\FilterableArchive\FilterProp;
+use SilverStripe\Control\Controller;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\TextField;
+
+class FilterProp_Tag extends FilterProp 
+{
+    public function getCMSFields()
+    {
+        $fields = new FieldList(
+            TextField::create("Title", _t("FilterableArchive.CategoryTitle", "Category"))
+        );
+        $this->extend("updateCMSFields", $fields);
+
+        return $fields;
+    }
+
+    /**
+     * Returns a relative URL for the tag link
+     *
+     * @return string URL
+     **/
+    public function getLink()
+    {
+        return Controller::join_links($this->HolderPage()->Link(), "tag", $this->URLSegment);
+    }
+}

@@ -40,18 +40,18 @@ class FilterCategory extends DataObject
         'MappedPages' => FilterMapping::class,
     ];
 
-    /**
-     * Example iterator placeholder for belongs_many_many.
-     * This is a list of arbitrary types of objects
-     *
-     * @return Generator|DataObject[]
-     */
-    public function Pages()
-    {
-        foreach ( $this->MappedPages() as $mapping ) {
-            yield $mapping->Item();
-        }
-    }
+//    /**
+//     * Example iterator placeholder for belongs_many_many.
+//     * This is a list of arbitrary types of objects
+//     *
+//     * @return Generator|DataObject[]
+//     */
+//    public function Pages()
+//    {
+//        foreach ( $this->MappedPages() as $mapping ) {
+//            yield $mapping->Item();
+//        }
+//    }
 
     public function getCMSFields()
     {

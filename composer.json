@@ -15,8 +15,7 @@
     }
   ],
   "require": {
-    "silverstripe/framework": "^4",
-    "restruct/silverstripe-softscheduler": "*"
+    "silverstripe/framework": "^4"
   },
   "extra": {
     "installer-name": "filterablearchive"

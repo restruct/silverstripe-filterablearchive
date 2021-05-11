@@ -1,31 +1,29 @@
 <?php
 
-namespace Restruct\SilverStripe\FilterableArchive;
+namespace Restruct\SilverStripe\FilterableArchive\Extensions;
 
-use Restruct\SilverStripe\SoftScheduler\EmbargoExpirySchedulerExtension;
-use \SilverStripe\CMS\Model\SiteTreeExtension;
+use Restruct\SilverStripe\FilterableArchive\FilterProp;
+use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\NumericField;
 use SilverStripe\Forms\GridField\GridFieldConfig;
 use SilverStripe\Forms\GridField\GridFieldButtonRow;
-use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBEnum;
 use SilverStripe\ORM\FieldType\DBInt;
-use Symbiote\GridFieldExtensions\GridFieldTitleHeader;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Control\Controller;
 
-class FilterableArchiveHolderExtension extends SiteTreeExtension
+class HolderExtension extends SiteTreeExtension
 {
-
     private static $managed_object_class = "Page";
     private static $managed_object_date_field = "Created";
 
@@ -45,83 +43,100 @@ class FilterableArchiveHolderExtension extends SiteTreeExtension
     ];
 
     private static $has_many = [
-        "Tags"       => FilterTag::class,
-        "Categories" => FilterCategory::class,
+//        "Tags"       => FilterTag::class,
+//        "Categories" => FilterCategory::class,
+        "Categories" => FilterProp::class.'.CatHolderPage',
+        "Tags" => FilterProp::class.'.TagHolderPage',
     ];
 
     // add fields to CMS
     public function updateCMSFields(FieldList $fields)
     {
-
-        // check if the insertbefore field is present (may be added later, in which case the above 
-        // fields never get added
-        //$insertOnTab = $this->owner->getFilterableArchiveConfigValue('pagination_control_tab');
-        //$insertBefore = $this->owner->getFilterableArchiveConfigValue('pagination_insert_before');
+        // check if the insertbefore field is present (may be added later, in which case the above fields never get added)
         $insertOnTab = Config::inst()->get($this->owner->className, 'pagination_control_tab');
         $insertBefore = Config::inst()->get($this->owner->className, 'pagination_insert_before');
         if ( !$fields->fieldByName("$insertOnTab.$insertBefore") ) {
             $insertBefore = null;
         }
 
-        //if($this->owner->getFilterableArchiveConfigValue('datearchive_active')){
+        // Pagination
         if ( Config::inst()->get($this->owner->className, 'datearchive_active') ) {
-            //$fields->addFieldToTab($this->owner->getFilterableArchiveConfigValue('pagination_control_tab'), 
-            $fields->addFieldToTab(Config::inst()->get($this->owner->className, 'pagination_control_tab'),
-                DropdownField::create('ArchiveUnit',
+            $fields->addFieldToTab(
+                $insertOnTab,
+                NumericField::create(
+                    "ItemsPerPage",
+                    _t("filterablearchive.ItemsPerPage", "Pagination: items per page"))
+                    ->setRightTitle(_t("filterablearchive.LeaveEmptyForNone",
+                            "Leave empty or '0' for no pagination")
+                    ),
+                $insertBefore
+            );
+        }
+
+        // Date-archive
+        if ( Config::inst()->get($this->owner->className, 'datearchive_active') ) {
+            $fields->addFieldToTab(
+                $insertOnTab,
+                DropdownField::create(
+                    'ArchiveUnit',
                     _t('filterablearchive.ARCHIVEUNIT', 'Archive unit'),
                     [
                         'year'  => _t('filterablearchive.YEAR', 'Year'),
                         'month' => _t('filterablearchive.MONTH', 'Month'),
                         'day'   => _t('filterablearchive.DAY', 'Day'),
-                    ]), $insertBefore);
+                    ]),
+                $insertBefore
+            );
         }
 
-        $pagerField = NumericField::create("ItemsPerPage",
-            _t("filterablearchive.ItemsPerPage", "Pagination: items per page"))
-            ->setRightTitle(_t("filterablearchive.LeaveEmptyForNone",
-                "Leave empty or '0' for no pagination"));
-
-        $fields->addFieldToTab(
-            $insertOnTab,
-            $pagerField,
-            $insertBefore
-        );
-
-        //
         // Create categories and tag config
-        //
         $config = GridFieldConfig::create()
-            ->addComponent(new GridFieldButtonRow())
             ->addComponent(new GridFieldEditableColumns())
             ->addComponent(new GridFieldDeleteAction())
-            ->addComponent(new GridFieldAddNewInlineButton());
+            ->addComponent(new GridFieldButtonRow('after'))
+            ->addComponent(new GridFieldAddNewInlineButton('buttons-after-left'));
 
         if ( Config::inst()->get($this->owner->ClassName, 'categories_active') ) {
-            $fields->addFieldToTab($insertOnTab, TextField::create('CategoriesTitle'), $insertBefore);
-            $fields->addFieldToTab($insertOnTab,
-                $categories = GridField::create(
-                    "Categories",
-                    _t("FilterableArchive.Categories", "Categories"),
-                    $this->owner->Categories(),
-                    $config
-                ), $insertBefore);
+            $fields->addFieldsToTab($insertOnTab, [
+                    HeaderField::create('CategoriesHeader', _t("FilterableArchive.Categories", "Categories")),
+                    TextField::create('CategoriesTitle'),
+                    $categories = GridField::create(
+                        "Categories",
+                        _t("FilterableArchive.Categories", "Categories"),
+                        $this->owner->Categories(),
+                        GridFieldConfig::create()
+                            ->addComponent(new GridFieldEditableColumns())
+                            ->addComponent(new GridFieldDeleteAction())
+                            ->addComponent(new GridFieldButtonRow('after'))
+                            ->addComponent(
+                                (new GridFieldAddNewInlineButton('buttons-after-left'))
+                                    ->setTitle(_t("FilterableArchive.AddCategory", "Add category"))
+                            )
+                    ),
+                ], $insertBefore);
             $categories->getConfig()
                 ->getComponentByType(GridFieldAddNewInlineButton::class)
                 ->setTitle(_t("FilterableArchive.AddCategory", "Add category"));
         }
 
-        if ( Config::inst()->get($this->owner->className, 'tags_active') ) {
-            $fields->addFieldToTab($insertOnTab, TextField::create('TagsTitle'), $insertBefore);
-            $fields->addFieldToTab($insertOnTab,
-                $tags = GridField::create(
-                    "Tags",
-                    _t("FilterableArchive.Tags", "Tags"),
-                    $this->owner->Tags(),
-                    $config
-                ), $insertBefore);
-            $tags->getConfig()
-                ->getComponentByType(GridFieldAddNewInlineButton::class)
-                ->setTitle(_t("FilterableArchive.AddTag", "Add tag"));
+        if ( Config::inst()->get($this->owner->ClassName, 'tags_active') ) {
+            $fields->addFieldsToTab($insertOnTab, [
+                    HeaderField::create('TagsHeader', _t("FilterableArchive.Tags", "Tags")),
+                    TextField::create('TagsTitle'),
+                    $tagsGF = GridField::create(
+                        "Tags",
+                        _t("FilterableArchive.Tags", "Tags"),
+                        $this->owner->Tags(),
+                        GridFieldConfig::create()
+                            ->addComponent(new GridFieldEditableColumns())
+                            ->addComponent(new GridFieldDeleteAction())
+                            ->addComponent(new GridFieldButtonRow('after'))
+                            ->addComponent(
+                                (new GridFieldAddNewInlineButton('buttons-after-left'))
+                                    ->setTitle(_t("FilterableArchive.AddTag", "Add tag"))
+                            )
+                    ),
+                ], $insertBefore);
         }
     }
 
@@ -136,26 +151,30 @@ class FilterableArchiveHolderExtension extends SiteTreeExtension
         $dateField = Config::inst()->get($this->owner->className, 'managed_object_date_field');
         $items = $class::get()->filter('ParentID', $this->owner->ID)->sort("$dateField DESC");
 
-        // workaround for Embargo/Expiry (augmentSQL for embargo/expiry is not working yet);
-        if ( $class::has_extension(EmbargoExpirySchedulerExtension::class) ) {
-            //Commented out in the extension
-            //$items = $items->where(EmbargoExpirySchedulerExtension::extraWhereQuery($class));
-        }
-
         //Allow decorators to manipulate list, eg to use this to manage non SiteTree Items
         $this->owner->extend('updateGetItems', $items);
 
         return $items;
     }
 
-    //
-    // Dropdowns for available archiveitems
-    //
     public function ArchiveActive()
     {
         return Config::inst()->get($this->owner->className, 'datearchive_active');
     }
 
+    public function TagsActive()
+    {
+        return Config::inst()->get($this->owner->className, 'tags_active');
+    }
+
+    public function CategoriesActive()
+    {
+        return Config::inst()->get($this->owner->className, 'categories_active');
+    }
+
+    //
+    // Dropdowns for available archiveitems
+    //
     public function ArchiveUnitDropdown($emptyString = null)
     {
         if ( !$this->ArchiveActive() ) return;
@@ -186,31 +205,17 @@ class FilterableArchiveHolderExtension extends SiteTreeExtension
             }
         }
 
-        $DrDown = new DropdownField('date', '', $itemArr);
-//        $DrDown->setEmptyString($emptyString ?: _t('filterablearchive.FILTERDATE', 'Filter by date'));
+        $DrDown = DropdownField::create('date', '', $itemArr);
         $DrDown->setEmptyString($emptyString ?: sprintf(_t('filterablearchive.FILTERBY', 'Filter by %s'), 'date'));
         $DrDown->addExtraClass("dropdown form-control");
-
-        $ctrl = Controller::curr();
-        $reqParams = $ctrl->getRequest()->params();
-
-//        $DrDown->setValue(
-//        $DrDown->setAttribute('onchange', "location = '{$this->owner->AbsoluteLink()}date/'+this.value.replace('-','/')+'/';");
-
-        $DrDown->setValue($ctrl->request->requestVar('date'));
         $DrDown->setAttribute('onchange', "this.form.submit()");
 
+        $ctrl = Controller::curr();
+        if ( $ctrl::has_extension(HolderControllerExtension::class) ) {
+            $DrDown->setValue( $ctrl->getFilteredDate() );
+        }
+
         return $DrDown;
-    }
-
-    public function TagsActive()
-    {
-        return Config::inst()->get($this->owner->className, 'tags_active');
-    }
-
-    public function CategoriesActive()
-    {
-        return Config::inst()->get($this->owner->className, 'categories_active');
     }
 
     public function FilterDropdown($CatOrTag = 'cat', $emptyString = null)
@@ -230,12 +235,12 @@ class FilterableArchiveHolderExtension extends SiteTreeExtension
         $DrDown->addExtraClass("dropdown form-control");
         $term = ( $CatOrTag == 'cat' ? _t('filterablearchive.CAT', 'category') : _t('filterablearchive.TAG', 'tag') );
         $DrDown->setEmptyString($emptyString ?: sprintf(_t('filterablearchive.FILTERBY', 'Filter by %s'), $term));
+        $DrDown->setAttribute('onchange', "this.form.submit()");
 
         $ctrl = Controller::curr();
-        if ( $ctrl::has_extension(FilterableArchiveHolderControllerExtension::class) ) {
-            $DrDown->setValue($ctrl->request->requestVar($CatOrTag));
+        if ( $ctrl::has_extension(HolderControllerExtension::class) ) {
+            $DrDown->setValue( $CatOrTag == 'cat' ? $ctrl->getFilteredCatSegment() : $ctrl->getFilteredTagSegment() );
         }
-        $DrDown->setAttribute('onchange', "this.form.submit()");
 
         return $DrDown;
     }
