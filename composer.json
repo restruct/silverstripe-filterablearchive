@@ -18,7 +18,9 @@
     }
   ],
   "require": {
-    "silverstripe/framework": "^4"
+    "silverstripe/vendor-plugin": "^1.0",
+    "silverstripe/framework": "^4.0",
+    "silverstripe/tagfield": "^2.0"
   },
   "extra": {
     "installer-name": "filterablearchive"
