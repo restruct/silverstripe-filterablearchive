@@ -17,7 +17,7 @@ This module decorates pages with configurable fields to filter them by. Handy fo
 ## Installation
 
 ```
-composer require micschk/silverstripe-filterablearchive dev-master
+composer require restruct/silverstripe-filterablearchive dev-master
 ```
 
 Then add the decorators & criteria (todo) which you want to filter by to config.yml:
