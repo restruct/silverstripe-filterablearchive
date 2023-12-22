@@ -60,7 +60,7 @@ class HolderExtension extends SiteTreeExtension
         }
 
         // Pagination
-        if ( Config::inst()->get($this->owner->className, 'datearchive_active') ) {
+        if ( Config::inst()->get($this->owner->className, 'pagination_active') ) {
             $fields->addFieldToTab(
                 $insertOnTab,
                 NumericField::create(
