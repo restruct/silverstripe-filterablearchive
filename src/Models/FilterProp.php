@@ -33,35 +33,55 @@ class FilterProp extends DataObject
         'TagItems' => FilterPropRelation::class.'.Tag',
     ];
 
-    /**
-     * Example iterator placeholder for belongs_many_many.
-     * This is a list of arbitrary types of objects (NOT a traditional ArrayList, so cannot do '->column(XY)' etc).
-     *
-     * For a regular ArrayList, eg: Page::get()->filter('ID',  FilterPropRelation::get()->filter('CategoryID', $cat->ID)->column('ItemID'));
-     *
-     * @return Generator|DataObject[]
-     */
-    public function CatItems()
+//    /**
+//     * Example iterator placeholder for belongs_many_many.
+//     * This is a list of arbitrary types of objects (NOT a traditional ArrayList, so cannot do '->column(XY)' etc).
+//     *
+//     * For a regular ArrayList, eg: Page::get()->filter('ID',  FilterPropRelation::get()->filter('CategoryID', $cat->ID)->column('ItemID'));
+//     *
+//     * @return Generator|DataObject[]
+//     */
+//    public function CatItems()
+//    {
+//        foreach ( $this->CatItems() as $filterPropRelItem ) {
+//            yield $filterPropRelItem->Item();
+//        }
+//    }
+//
+//    /**
+//     * Example iterator placeholder for belongs_many_many.
+//     * This is a list of arbitrary types of objects (NOT a traditional ArrayList, so cannot do '->column(XY)' etc).
+//     *
+//     * For a regular ArrayList, eg: Page::get()->filter('ID',  FilterPropRelation::get()->filter('TagID', $cat->ID)->column('ItemID'));
+//     *
+//     * @return Generator|DataObject[]
+//     */
+//    public function TagItems()
+//    {
+//        foreach ( $this->TagItems() as $filterPropRelItem ) {
+//            yield $filterPropRelItem->Item();
+//        }
+//    }
+
+    public function Items()
     {
-        foreach ( $this->CatItems() as $filterPropRelItem ) {
-            yield $filterPropRelItem->Item();
-        }
+        $itemIDs = FilterPropRelation::get()
+            ->filter(($this->CatHolderPageID ? 'CategoryID' : 'TagID'), $this->ID)
+            ->column('ItemID');
+        return SiteTree::get()->filter('ID', count($itemIDs) ? $itemIDs : -1);
     }
 
-    /**
-     * Example iterator placeholder for belongs_many_many.
-     * This is a list of arbitrary types of objects (NOT a traditional ArrayList, so cannot do '->column(XY)' etc).
-     *
-     * For a regular ArrayList, eg: Page::get()->filter('ID',  FilterPropRelation::get()->filter('TagID', $cat->ID)->column('ItemID'));
-     *
-     * @return Generator|DataObject[]
-     */
-    public function TagItems()
-    {
-        foreach ( $this->TagItems() as $filterPropRelItem ) {
-            yield $filterPropRelItem->Item();
-        }
-    }
+//    public function CatItems()
+//    {
+//        $itemIDs = FilterPropRelation::get()->filter('CategoryID', $this->ID)->column('ItemID');
+//        return SiteTree::get()->filter('ID', count($itemIDs) ? $itemIDs : -1);
+//    }
+//
+//    public function TagItems()
+//    {
+//        $itemIDs = FilterPropRelation::get()->filter('TagID', $this->ID)->column('ItemID');
+//        return SiteTree::get()->filter('ID', count($itemIDs) ? $itemIDs : -1);
+//    }
 
     public function onBeforeWrite()
     {
@@ -77,9 +97,22 @@ class FilterProp extends DataObject
      *
      * @return string URL
      **/
-    public function getLink($relSegment='prop')
+    public function getLink($relSegment=null)
     {
-        return Controller::join_links($this->HolderPage()->Link(), $relSegment, $this->URLSegment);
+        $HolderPage = null;
+        if($this->CatHolderPageID) {
+            $HolderPage = $this->CatHolderPage();
+            $relSegment = 'cat';
+        } else if($this->TagHolderPageID) {
+            $HolderPage = $this->TagHolderPage();
+            $relSegment = 'tag';
+        }
+        if($HolderPage) {
+            $link = $HolderPage->Link();
+            return $link . (strpos($link, '?') ? '&' : '?') . "{$relSegment}={$this->URLSegment}";
+        }
+
+        return null;
     }
 
     /**

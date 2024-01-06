@@ -3,18 +3,21 @@
 namespace Restruct\SilverStripe\FilterableArchive\Extensions;
 
 use Restruct\SilverStripe\FilterableArchive\FilterPropRelation;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Dev\Debug;
 use SilverStripe\Forms\DateField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\ArrayList;
 use SilverStripe\TagField\TagField;
 use SilverStripe\Control\Controller;
 
-class ItemExtension extends SiteTreeExtension
+class ItemExtension
+    extends SiteTreeExtension
 {
-    /** @config string|null|bool what Date/DateTime field to use for filtering by date ( */
-    private static $field_for_date_filter = 'Created';
+//    /** @config string|null|bool what Date/DateTime field to use for filtering by date ( */
+//    private static $field_for_date_filter = 'Created';
 
     // This same many_many may also exist on other classes
     private static $many_many = [
@@ -33,23 +36,25 @@ class ItemExtension extends SiteTreeExtension
     public function updateCMSFields(FieldList $fields)
     {
         parent::updateCMSFields($fields);
+        $HolderPage = $this->getHolderPage();
 
         // Add Date field (if date archive active AND not using Created or LastUpdated)
-        $dateFieldName = Config::inst()->get($this->owner->Parent()->className, 'field_for_date_filter');
-        if (Config::inst()->get($this->owner->Parent()->className, 'datearchive_active')
+//        $dateFieldName = Config::inst()->get($HolderPage->ClassName, 'managed_object_date_field');
+        $dateFieldName = $this->getDateField()->getName();
+        if (    $HolderPage && $HolderPage->ArchiveActive()
                 && $dateFieldName && ! in_array($dateFieldName, ['Created', 'LastEdited'])
         ) {
             $dateField = DateField::create($dateFieldName);
             //$dateField->setConfig('dateformat', 'dd-MM-yyyy'); // global setting
 //            $dateField->setConfig('showcalendar', 1); // field-specific setting
-            $fields->addFieldToTab("Root.Main", $dateField, 'FeaturedImages');
+//            $fields->addFieldToTab("Root.Main", $dateField, 'FeaturedImages');
             $fields->insertbefore("Content", $dateField);
         }
 
         // Add Categories field
-        if (Config::inst()->get($this->owner->Parent()->className, 'categories_active')) {
+        if ($HolderPage && $HolderPage->CategoriesActive()) {
             // Use tagfield instead (allows inline creation)
-            $availableCats = $this->owner->Parent()->Categories();
+            $availableCats = $this->getHolderPage()->Categories();
             $categoriesField = new TagField(
                 'Categories',
                 _t("FilterableArchive.Categories", "Categories"),
@@ -62,9 +67,9 @@ class ItemExtension extends SiteTreeExtension
         }
 
         // Add Categories field
-        if (Config::inst()->get($this->owner->Parent()->className, 'tags_active')) {
+        if ($HolderPage && $HolderPage->TagsActive()) {
             // Use tagfield instead (allows inline creation)
-            $availableTags = $this->owner->Parent()->Tags();
+            $availableTags = $this->getHolderPage()->Tags();
             $tagsField = new TagField(
                 'Tags',
                 _t("FilterableArchive.Tags", "Tags"),
@@ -77,47 +82,40 @@ class ItemExtension extends SiteTreeExtension
         }
     }
 
-//    /**
-//     * Returns a monthly archive link for the current item.
-//     *
-//     * @param $type string day|month|year
-//     *
-//     * @return string URL
-//    **/
-//    public function getArchiveLink($archiveunit = false)
-//    {
-//        if (!$archiveunit) {
-//            $archiveunit = $this->owner->Parent()->ArchiveUnit;
-//        }
-//        if (!$archiveunit) {
-//            $archiveunit = 'month';
-//        } // default
-//        //$datefield = $this->owner->Parent()->getFilterableArchiveConfigValue('managed_object_date_field');
-//        $datefield = Config::inst()->get($this->owner->Parent()->className, 'managed_object_date_field');
-//        $date = $this->owner->dbObject($datefield);
-//        if ($archiveunit == "month") {
-//            return Controller::join_links($this->owner->Parent()->Link("date"),
-//                $date->format("Y").'-'.$date->format("m"))."/";
-//        }
-//        if ($archiveunit == "day") {
-//            return Controller::join_links(
-//                $this->owner->Parent()->Link("date"),
-//                $date->format("Y").'-'.$date->format("m").'-'.$date->format("d")
-//            )."/";
-//        }
-//        return Controller::join_links($this->owner->Parent()->Link("date"), $date->format("Y"))."/";
-//    }
+    public function getHolderPage()
+    {
+        /** @var SiteTree $Parent */
+        while($Parent = $this->owner->Parent()) {
+            if ($Parent->hasExtension(HolderExtension::class)) {
+                return $Parent;
+            }
+        }
 
-//    /**
-//     * Returns a yearly archive link for the current item.
-//     *
-//     * @return string URL
-//    **/
-//    public function getYearArchiveLink()
-//    {
-//        //$datefield = $this->owner->Parent()->getFilterableArchiveConfigValue('managed_object_date_field');
-//        $datefield = Config::inst()->get($this->owner->Parent()->className, 'managed_object_date_field');
-//        $date = $this->dbObject($datefield);
-//        return Controller::join_links($this->owner->Parent()->Link("date"), $date->format("Y"));
-//    }
+        return null;
+    }
+
+    public function getDateField()
+    {
+        if($Holder = $this->owner->getHolderPage()){
+            $datefield = Config::inst()->get($Holder->className, 'managed_object_date_field');
+            return $this->owner->dbObject($datefield);
+        }
+        return null;
+    }
+
+    public function getRelatedItems()
+    {
+        $Related = ArrayList::create();
+        $HolderPage = $this->getHolderPage();
+
+        // First by tags (= cross connections), then by category (= same type of items)
+        if($HolderPage->TagsActive()) foreach ($this->owner->Tags() as $Tag){
+            $Related->merge( $Tag->Items()->exclude('ID', $this->owner->ID) );
+        }
+        if($HolderPage->CategoriesActive()) foreach ($this->owner->Categories() as $Cat){
+            $Related->merge( $Cat->Items()->exclude('ID', $this->owner->ID) );
+        }
+
+        return $Related;
+    }
 }
