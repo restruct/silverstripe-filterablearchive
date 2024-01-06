@@ -55,8 +55,6 @@ class HolderExtension
     ];
 
     private static $has_many = [
-//        "Tags"       => FilterTag::class,
-//        "Categories" => FilterCategory::class,
         "Categories" => FilterProp::class.'.CatHolderPage',
         "Tags" => FilterProp::class.'.TagHolderPage',
     ];
@@ -77,8 +75,8 @@ class HolderExtension
                 $insertOnTab,
                 NumericField::create(
                     "ItemsPerPage",
-                    _t("filterablearchive.ItemsPerPage", "Pagination: items per page"))
-                    ->setRightTitle(_t("filterablearchive.LeaveEmptyForNone",
+                    _t("FilterableArchive.PaginationItemsPerPage", "Pagination: items per page"))
+                    ->setRightTitle(_t("filterablearchive.LeaveEmptyForNoPagination",
                             "Leave empty or '0' for no pagination")
                     ),
                 $insertBefore
@@ -89,18 +87,18 @@ class HolderExtension
         if ( Config::inst()->get($this->owner->className, 'datearchive_active') ) {
             $dateFields = [
                 HeaderField::create('ArchiveHeader', _t("FilterableArchive.ArchiveHeader", "Date archive")),
-                CheckboxField::create('DateFilterEnabled', 'Enable Date/archive')
-                    ->setDescription($this->owner->DateFilterEnabled ? null : 'Currently disabled - enable and save/publish to activate'),
+                CheckboxField::create('DateFilterEnabled', _t("FilterableArchive.EnableDateArchive", 'Enable Date/archive'))
+                    ->setDescription($this->owner->DateFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->DateFilterEnabled) {
                 $dateFields[] = TextField::create('DateTitle')->setAttribute('placeholder', self::config()->get('datearchive_active'));
                 $dateFields[] = DropdownField::create(
                     'ArchiveUnit',
-                    _t('filterablearchive.ARCHIVEUNIT', 'Archive unit'),
+                    _t('FilterableArchive.ArchiveUnit', 'Archive unit'),
                     [
-                        'year' => _t('filterablearchive.YEAR', 'Year'),
-                        'month' => _t('filterablearchive.MONTH', 'Month'),
-                        'day' => _t('filterablearchive.DAY', 'Day'),
+                        'year' => _t('FilterableArchive.Year', 'Year'),
+                        'month' => _t('FilterableArchive.Month', 'Month'),
+                        'day' => _t('FilterableArchive.Day', 'Day'),
                     ]);
             }
             $fields->addFieldsToTab($insertOnTab, $dateFields, $insertBefore);
@@ -116,8 +114,8 @@ class HolderExtension
         if ( Config::inst()->get($this->owner->ClassName, 'categories_active') ) {
             $catFields = [
                 HeaderField::create('CategoriesHeader', _t("FilterableArchive.Categories", "Categories")),
-                CheckboxField::create('CategoriesFilterEnabled', 'Enable Categories')
-                    ->setDescription($this->owner->CategoriesFilterEnabled ? null : 'Currently disabled - enable and save/publish to activate'),
+                CheckboxField::create('CategoriesFilterEnabled', _t("FilterableArchive.EnableCategories", 'Enable Categories'))
+                    ->setDescription($this->owner->CategoriesFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->CategoriesFilterEnabled) {
                 $catFields[] = TextField::create('CategoriesTitle')->setAttribute('placeholder', self::config()->get('categories_active'));
@@ -134,8 +132,8 @@ class HolderExtension
         if ( Config::inst()->get($this->owner->ClassName, 'tags_active') ) {
             $tagFields = [
                 HeaderField::create('TagsHeader', _t("FilterableArchive.Tags", "Tags")),
-                CheckboxField::create('TagsFilterEnabled', 'Enable Tags')
-                    ->setDescription($this->owner->TagsFilterEnabled ? null : 'Currently disabled - enable and save/publish to activate'),
+                CheckboxField::create('TagsFilterEnabled', _t("FilterableArchive.EnableTags", 'Enable Tags'))
+                    ->setDescription($this->owner->TagsFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->TagsFilterEnabled) {
                 $tagFields[] = TextField::create('TagsTitle')
@@ -219,7 +217,6 @@ class HolderExtension
         $DrDown = DropdownField::create('date', '', $itemArr);
         $DrDown->addExtraClass("dropdown form-select");
         $DrDown->setAttribute('onchange', "this.form.submit()");
-//        $DrDown->setEmptyString($emptyString ?: sprintf(_t('filterablearchive.FILTERBY', 'Filter by %s'), 'date'));
         $DrDown->setEmptyString($this->owner->DateTitle ?: ($emptyString ?: self::config()->get('datearchive_active')));
 
         $ctrl = Controller::curr();
@@ -245,8 +242,6 @@ class HolderExtension
 
         $DrDown = new DropdownField($CatOrTag, '', $itemArr);
         $DrDown->addExtraClass("dropdown form-select");
-//        $term = ( $CatOrTag == 'cat' ? _t('filterablearchive.CAT', 'category') : _t('filterablearchive.TAG', 'tag') );
-//        $DrDown->setEmptyString($emptyString ?: sprintf(_t('filterablearchive.FILTERBY', 'Filter by %s'), $term));
         $DrDown->setAttribute('onchange', "this.form.submit()");
 
         $drdLabel = ($CatOrTag == 'cat' ? $this->owner->CategoriesTitle : $this->owner->TagsTitle);

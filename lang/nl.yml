@@ -1,0 +1,28 @@
+nl:
+  FilterableArchive:
+    ArchiveHeader: 'Archief op datum'
+    ArchiveUnit: 'Archief eenheid'
+    Categories: 'Categoriën'
+    CurrentlyDisabled: 'Inactief - vink aan en sla op/publiceer om te activeren'
+    Day: Dag
+    EnableCategories: 'Activeer categoriën'
+    EnableDateArchive: 'Activeer archief op datum'
+    EnableTags: 'Activeer Tags'
+    Month: Maand
+    PaginationItemsPerPage: 'Pagineer per aantal items'
+    Tags: Tags
+    Year: Jaar
+  Restruct\SilverStripe\FilterableArchive\FilterProp:
+    PLURALNAME: 'Filter Props'
+    PLURALS:
+      one: 'Een filtereigenschap'
+      other: '{count} filtereigenschappen'
+    SINGULARNAME: 'Filtereigenschap'
+  Restruct\SilverStripe\FilterableArchive\FilterPropRelation:
+    PLURALNAME: 'Filtereigenschap-relaties'
+    PLURALS:
+      one: 'Een filtereigenschap-relatie'
+      other: '{count} filtereigenschap-relaties'
+    SINGULARNAME: 'Filtereigenschap-relatie'
+  filterablearchive:
+    LeaveEmptyForNoPagination: 'Laat leeg of ''0'' voor geen paginering'

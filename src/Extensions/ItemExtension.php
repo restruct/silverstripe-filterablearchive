@@ -16,9 +16,6 @@ use SilverStripe\Control\Controller;
 class ItemExtension
     extends SiteTreeExtension
 {
-//    /** @config string|null|bool what Date/DateTime field to use for filtering by date ( */
-//    private static $field_for_date_filter = 'Created';
-
     // This same many_many may also exist on other classes
     private static $many_many = [
         "Categories" => [
@@ -39,15 +36,11 @@ class ItemExtension
         $HolderPage = $this->getHolderPage();
 
         // Add Date field (if date archive active AND not using Created or LastUpdated)
-//        $dateFieldName = Config::inst()->get($HolderPage->ClassName, 'managed_object_date_field');
         $dateFieldName = $this->getDateField()->getName();
         if (    $HolderPage && $HolderPage->ArchiveActive()
                 && $dateFieldName && ! in_array($dateFieldName, ['Created', 'LastEdited'])
         ) {
             $dateField = DateField::create($dateFieldName);
-            //$dateField->setConfig('dateformat', 'dd-MM-yyyy'); // global setting
-//            $dateField->setConfig('showcalendar', 1); // field-specific setting
-//            $fields->addFieldToTab("Root.Main", $dateField, 'FeaturedImages');
             $fields->insertbefore("Content", $dateField);
         }
 

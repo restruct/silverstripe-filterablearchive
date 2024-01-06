@@ -1,0 +1,28 @@
+nl:
+  FilterableArchive:
+    ArchiveHeader: 'Date archive'
+    ArchiveUnit: 'Archive unit'
+    Categories: Categories
+    CurrentlyDisabled: 'Currently disabled - enable and save/publish to activate'
+    Day: Day
+    EnableCategories: 'Enable Categories'
+    EnableDateArchive: 'Enable Date/archive'
+    EnableTags: 'Enable Tags'
+    Month: Month
+    PaginationItemsPerPage: 'Pagination: items per page'
+    Tags: Tags
+    Year: Year
+  Restruct\SilverStripe\FilterableArchive\FilterProp:
+    PLURALNAME: 'Filter Props'
+    PLURALS:
+      one: 'A Filter Prop'
+      other: '{count} Filter Props'
+    SINGULARNAME: 'Filter Prop'
+  Restruct\SilverStripe\FilterableArchive\FilterPropRelation:
+    PLURALNAME: 'Filter Prop Relations'
+    PLURALS:
+      one: 'A Filter Prop Relation'
+      other: '{count} Filter Prop Relations'
+    SINGULARNAME: 'Filter Prop Relation'
+  filterablearchive:
+    LeaveEmptyForNoPagination: 'Leave empty or ''0'' for no pagination'
