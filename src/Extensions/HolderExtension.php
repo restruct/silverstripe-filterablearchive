@@ -91,7 +91,8 @@ class HolderExtension
                     ->setDescription($this->owner->DateFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->DateFilterEnabled) {
-                $dateFields[] = TextField::create('DateTitle')->setAttribute('placeholder', self::config()->get('datearchive_active'));
+                $dateFields[] = TextField::create(_t("FilterableArchive.DateTitle", 'DateTitle'))
+                    ->setAttribute('placeholder', self::config()->get('datearchive_active'));
                 $dateFields[] = DropdownField::create(
                     'ArchiveUnit',
                     _t('FilterableArchive.ArchiveUnit', 'Archive unit'),
@@ -118,7 +119,8 @@ class HolderExtension
                     ->setDescription($this->owner->CategoriesFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->CategoriesFilterEnabled) {
-                $catFields[] = TextField::create('CategoriesTitle')->setAttribute('placeholder', self::config()->get('categories_active'));
+                $catFields[] = TextField::create(_t("FilterableArchive.CategoriesTitle", 'CategoriesTitle'))
+                    ->setAttribute('placeholder', self::config()->get('categories_active'));
                 $catFields[] = GridField::create(
                     "Categories",
                     _t("FilterableArchive.Categories", "Categories"),
@@ -136,7 +138,7 @@ class HolderExtension
                     ->setDescription($this->owner->TagsFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->TagsFilterEnabled) {
-                $tagFields[] = TextField::create('TagsTitle')
+                $tagFields[] = TextField::create(_t("FilterableArchive.TagsTitle", 'TagsTitle'))
                             ->setAttribute('placeholder', self::config()->get('tags_active'));
                 $tagFields[] = GridField::create(
                     "Tags",

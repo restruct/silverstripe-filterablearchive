@@ -12,6 +12,9 @@ nl:
     PaginationItemsPerPage: 'Pagineer per aantal items'
     Tags: Tags
     Year: Jaar
+    DateTitle: "Datumfilter label"
+    CategoriesTitle: "Categoriën label"
+    TagsTitle: "Tags label"
   Restruct\SilverStripe\FilterableArchive\FilterProp:
     PLURALNAME: 'Filter Props'
     PLURALS:

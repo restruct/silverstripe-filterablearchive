@@ -12,6 +12,9 @@ nl:
     PaginationItemsPerPage: 'Pagination: items per page'
     Tags: Tags
     Year: Year
+    DateTitle: "Dates label"
+    CategoriesTitle: "Categories label"
+    TagsTitle: "Tags label"
   Restruct\SilverStripe\FilterableArchive\FilterProp:
     PLURALNAME: 'Filter Props'
     PLURALS:
