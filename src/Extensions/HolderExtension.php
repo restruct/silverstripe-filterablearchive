@@ -91,7 +91,7 @@ class HolderExtension
                     ->setDescription($this->owner->DateFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->DateFilterEnabled) {
-                $dateFields[] = TextField::create(_t("FilterableArchive.DateTitle", 'DateTitle'))
+                $dateFields[] = TextField::create('DateTitle', _t("FilterableArchive.DateTitle", 'DateTitle'))
                     ->setAttribute('placeholder', self::config()->get('datearchive_active'));
                 $dateFields[] = DropdownField::create(
                     'ArchiveUnit',
@@ -119,7 +119,7 @@ class HolderExtension
                     ->setDescription($this->owner->CategoriesFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->CategoriesFilterEnabled) {
-                $catFields[] = TextField::create(_t("FilterableArchive.CategoriesTitle", 'CategoriesTitle'))
+                $catFields[] = TextField::create('CategoriesTitle', _t("FilterableArchive.CategoriesTitle", 'CategoriesTitle'))
                     ->setAttribute('placeholder', self::config()->get('categories_active'));
                 $catFields[] = GridField::create(
                     "Categories",
@@ -138,7 +138,7 @@ class HolderExtension
                     ->setDescription($this->owner->TagsFilterEnabled ? null : _t("FilterableArchive.CurrentlyDisabled", 'Currently disabled - enable and save/publish to activate')),
             ];
             if($this->owner->TagsFilterEnabled) {
-                $tagFields[] = TextField::create(_t("FilterableArchive.TagsTitle", 'TagsTitle'))
+                $tagFields[] = TextField::create('TagsTitle', _t("FilterableArchive.TagsTitle", 'TagsTitle'))
                             ->setAttribute('placeholder', self::config()->get('tags_active'));
                 $tagFields[] = GridField::create(
                     "Tags",
