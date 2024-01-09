@@ -139,7 +139,7 @@ class HolderExtension
             ];
             if($this->owner->TagsFilterEnabled) {
                 $tagFields[] = TextField::create('TagsTitle', _t("FilterableArchive.TagsTitle", 'TagsTitle'))
-                            ->setAttribute('placeholder', self::config()->get('tags_active'));
+                    ->setAttribute('placeholder', self::config()->get('tags_active'));
                 $tagFields[] = GridField::create(
                     "Tags",
                     _t("FilterableArchive.Tags", "Tags"),
@@ -219,6 +219,7 @@ class HolderExtension
         $DrDown = DropdownField::create('date', '', $itemArr);
         $DrDown->addExtraClass("dropdown form-select");
         $DrDown->setAttribute('onchange', "this.form.submit()");
+        $DrDown->UnsetAndSubmitOnClick = "event.preventDefault(); drd = document.getElementById('{$DrDown->getName()}'); drd.selectedIndex = 0; drd.onchange();";
         $DrDown->setEmptyString($this->owner->DateTitle ?: ($emptyString ?: self::config()->get('datearchive_active')));
 
         $ctrl = Controller::curr();
@@ -245,6 +246,7 @@ class HolderExtension
         $DrDown = new DropdownField($CatOrTag, '', $itemArr);
         $DrDown->addExtraClass("dropdown form-select");
         $DrDown->setAttribute('onchange', "this.form.submit()");
+        $DrDown->UnsetAndSubmitOnClick = "event.preventDefault(); drd = document.getElementById('{$DrDown->getName()}'); drd.selectedIndex = 0; drd.onchange();";
 
         $drdLabel = ($CatOrTag == 'cat' ? $this->owner->CategoriesTitle : $this->owner->TagsTitle);
         if(!$drdLabel) $drdLabel = $emptyString;
