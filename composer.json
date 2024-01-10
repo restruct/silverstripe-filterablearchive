@@ -13,7 +13,7 @@
   "require": {
     "silverstripe/vendor-plugin": "^1.0",
     "silverstripe/framework": "^4.0",
-    "silverstripe/tagfield": "^2.0"
+    "silverstripe/tagfield": "^2.0|^3.0"
   },
   "extra": {
     "installer-name": "filterablearchive"
