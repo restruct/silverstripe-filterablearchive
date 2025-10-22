@@ -2,13 +2,11 @@
 
 namespace Restruct\SilverStripe\FilterableArchive;
 
+use Override;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\Forms\FieldList;
-use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\FieldType\DBVarchar;
 use SilverStripe\View\Parsers\URLSegmentFilter;
-use SilverStripe\Control\Controller;
 
 /**
  *
@@ -82,7 +80,8 @@ class FilterProp extends DataObject
 //        return SiteTree::get()->filter('ID', count($itemIDs) ? $itemIDs : -1);
 //    }
 
-    public function onBeforeWrite()
+    #[Override]
+    protected function onBeforeWrite()
     {
         parent::onBeforeWrite();
         if ( $this->Title ) {
@@ -99,16 +98,17 @@ class FilterProp extends DataObject
     public function getLink($relSegment=null)
     {
         $HolderPage = null;
-        if($this->CatHolderPageID) {
+        if ($this->CatHolderPageID) {
             $HolderPage = $this->CatHolderPage();
             $relSegment = 'cat';
-        } else if($this->TagHolderPageID) {
+        } elseif ($this->TagHolderPageID) {
             $HolderPage = $this->TagHolderPage();
             $relSegment = 'tag';
         }
+
         if($HolderPage) {
             $link = $HolderPage->Link();
-            return $link . (strpos($link, '?') ? '&' : '?') . "{$relSegment}={$this->URLSegment}";
+            return $link . (strpos((string) $link, '?') ? '&' : '?') . sprintf('%s=%s', $relSegment, $this->URLSegment);
         }
 
         return null;
@@ -117,6 +117,7 @@ class FilterProp extends DataObject
     /**
      * @return boolean
      */
+    #[Override]
     public function canCreate($member = null, $context = [])
     {
         $extended = $this->extendedCan(__FUNCTION__, $member, $context);
@@ -130,6 +131,7 @@ class FilterProp extends DataObject
     /**
      * @return boolean
      */
+    #[Override]
     public function canView($member = null, $context = [])
     {
         $extended = $this->extendedCan(__FUNCTION__, $member, $context);
@@ -143,6 +145,7 @@ class FilterProp extends DataObject
     /**
      * @return boolean
      */
+    #[Override]
     public function canEdit($member = null, $context = [])
     {
         $extended = $this->extendedCan(__FUNCTION__, $member, $context);
@@ -156,6 +159,7 @@ class FilterProp extends DataObject
     /**
      * @return boolean
      */
+    #[Override]
     public function canDelete($member = null, $context = [])
     {
         $extended = $this->extendedCan(__FUNCTION__, $member, $context);

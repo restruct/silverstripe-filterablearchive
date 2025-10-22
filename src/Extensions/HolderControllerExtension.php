@@ -85,14 +85,23 @@ class HolderControllerExtension extends Extension
         // get items filtered by date and then filter by cat (GET yyyy-mm-dd or params date/$Date)
         $filteredDate = $this->getFilteredDate();
         if ( $this->owner->ArchiveActive() && $filteredDate ) {
-            [ $year, $month, $day ] = array_pad(explode('-', $filteredDate), 3, null);
+            [ $year, $month, $day ] = array_pad(explode('-', (string) $filteredDate), 3, null);
 
             $dateFilter = [];
             $dateField = Config::inst()->get($this->owner->className, 'managed_object_date_field');
-            if ( $year ) $dateFilter[ "YEAR(\"{$dateField}\")" ] = $year;
-            if ( $month ) $dateFilter[ "MONTH(\"{$dateField}\")" ] = $month;
-            if ( $day ) $dateFilter[ "DAY(\"{$dateField}\")" ] = $day;
-            if ( count($dateFilter) ) {
+            if ($year) {
+                $dateFilter[ sprintf('YEAR("%s")', $dateField) ] = $year;
+            }
+
+            if ($month) {
+                $dateFilter[ sprintf('MONTH("%s")', $dateField) ] = $month;
+            }
+
+            if ($day) {
+                $dateFilter[ sprintf('DAY("%s")', $dateField) ] = $day;
+            }
+
+            if ( $dateFilter !== [] ) {
                 $items = $items->where($dateFilter);
             }
         }

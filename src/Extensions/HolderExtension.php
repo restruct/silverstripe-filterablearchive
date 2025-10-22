@@ -2,6 +2,7 @@
 
 namespace Restruct\SilverStripe\FilterableArchive\Extensions;
 
+use SilverStripe\Forms\FormField;
 use Restruct\SilverStripe\FilterableArchive\FilterProp;
 use SilverStripe\Core\Extension;
 use SilverStripe\Core\Config\Configurable;
@@ -31,15 +32,20 @@ class HolderExtension extends Extension
     use Configurable;
 
     private static $managed_object_class = "Page";
+
     private static $managed_object_date_field = "Created";
 
     private static $pagination_control_tab = "Root.Main";
-    private static $pagination_insert_before = null;
+
+    private static $pagination_insert_before;
+
     private static $pagination_active = true;
 
     /** @config string|bool works as available/unavailable toggle (eg false) as well as placeholder label */
     private static $datearchive_active = 'Date';
+
     private static $categories_active = 'Categories';
+
     private static $tags_active = 'Tags';
 
     private static $db = [
@@ -64,7 +70,7 @@ class HolderExtension extends Extension
         // check if the insertbefore field is present (may be added later, in which case the above fields never get added)
         $insertOnTab = Config::inst()->get($this->owner->className, 'pagination_control_tab');
         $insertBefore = Config::inst()->get($this->owner->className, 'pagination_insert_before');
-        if ( !$fields->fieldByName("$insertOnTab.$insertBefore") ) {
+        if ( !$fields->fieldByName(sprintf('%s.%s', $insertOnTab, $insertBefore)) instanceof FormField ) {
             $insertBefore = null;
         }
 
@@ -101,6 +107,7 @@ class HolderExtension extends Extension
                         'day' => _t('FilterableArchive.Day', 'Day'),
                     ]);
             }
+
             $fields->addFieldsToTab($insertOnTab, $dateFields, $insertBefore);
         }
 
@@ -127,6 +134,7 @@ class HolderExtension extends Extension
                     $GFConfig
                 );
             }
+
             $fields->addFieldsToTab($insertOnTab, $catFields, $insertBefore);
         }
 
@@ -146,6 +154,7 @@ class HolderExtension extends Extension
                     $GFConfig
                 );
             }
+
             $fields->addFieldsToTab($insertOnTab, $tagFields, $insertBefore);
         }
     }
@@ -159,7 +168,7 @@ class HolderExtension extends Extension
     {
         $class = Config::inst()->get($this->owner->className, 'managed_object_class');
         $dateField = Config::inst()->get($this->owner->className, 'managed_object_date_field');
-        $items = $class::get()->filter('ParentID', $this->owner->ID)->sort("$dateField DESC");
+        $items = $class::get()->filter('ParentID', $this->owner->ID)->sort($dateField . ' DESC');
 
         //Allow decorators to manipulate list, eg to use this to manage non SiteTree Items
         $this->owner->extend('updateGetItems', $items);
@@ -187,7 +196,9 @@ class HolderExtension extends Extension
     //
     public function ArchiveFilterDropdown($emptyString = null)
     {
-        if ( !$this->ArchiveActive() ) return;
+        if (!$this->ArchiveActive()) {
+            return null;
+        }
 
         // build array with available archive 'units'
         $dateField = Config::inst()->get($this->owner->className, 'managed_object_date_field');
@@ -196,7 +207,8 @@ class HolderExtension extends Extension
             if ( !$item->$dateField ) {
                 continue;
             }
-            $dateObj = DBDate::create()->setValue(strtotime($item->$dateField));
+
+            $dateObj = DBDate::create()->setValue(strtotime((string) $item->$dateField));
             // So apparently DBDate format was switched from PHP to CLDR formatting:
             // http://userguide.icu-project.org/formatparse/datetime#TOC-Date-Field-Symbol-Table
             if ( $this->owner->ArchiveUnit === 'day' ) {
@@ -209,6 +221,7 @@ class HolderExtension extends Extension
                 $arrkey = $dateObj->Format('yyyy');
                 $arrval = $dateObj->Format('yyyy');
             }
+
             // add date if not yet in array
             if ( !array_key_exists($arrkey, $itemArr) ) {
                 $itemArr[ $arrkey ] = $arrval;
@@ -218,7 +231,7 @@ class HolderExtension extends Extension
         $DrDown = DropdownField::create('date', '', $itemArr);
         $DrDown->addExtraClass("dropdown form-select");
         $DrDown->setAttribute('onchange', "this.form.submit()");
-        $DrDown->UnsetAndSubmitOnClick = "event.preventDefault(); drd = document.getElementById('{$DrDown->getName()}'); drd.selectedIndex = 0; drd.onchange();";
+        $DrDown->UnsetAndSubmitOnClick = sprintf("event.preventDefault(); drd = document.getElementById('%s'); drd.selectedIndex = 0; drd.onchange();", $DrDown->getName());
         $DrDown->setEmptyString($this->owner->DateTitle ?: ($emptyString ?: self::config()->get('datearchive_active')));
 
         $ctrl = Controller::curr();
@@ -231,8 +244,13 @@ class HolderExtension extends Extension
 
     public function FilterDropdown($CatOrTag = 'cat', $emptyString = null)
     {
-        if ( $CatOrTag == 'tag' && !$this->TagsActive() ) return;
-        if ( $CatOrTag == 'cat' && !$this->CategoriesActive() ) return;
+        if ($CatOrTag == 'tag' && !$this->TagsActive()) {
+            return null;
+        }
+
+        if ($CatOrTag == 'cat' && !$this->CategoriesActive()) {
+            return null;
+        }
 
         $itemArr = [];
         $items = $CatOrTag == 'cat' ? $this->owner->Categories() : $this->owner->Tags();
@@ -245,11 +263,17 @@ class HolderExtension extends Extension
         $DrDown = new DropdownField($CatOrTag, '', $itemArr);
         $DrDown->addExtraClass("dropdown form-select");
         $DrDown->setAttribute('onchange', "this.form.submit()");
-        $DrDown->UnsetAndSubmitOnClick = "event.preventDefault(); drd = document.getElementById('{$DrDown->getName()}'); drd.selectedIndex = 0; drd.onchange();";
+        $DrDown->UnsetAndSubmitOnClick = sprintf("event.preventDefault(); drd = document.getElementById('%s'); drd.selectedIndex = 0; drd.onchange();", $DrDown->getName());
 
         $drdLabel = ($CatOrTag == 'cat' ? $this->owner->CategoriesTitle : $this->owner->TagsTitle);
-        if(!$drdLabel) $drdLabel = $emptyString;
-        if(!$drdLabel) $drdLabel = ($CatOrTag == 'cat' ? self::config()->get('categories_active') : self::config()->get('tags_active'));
+        if (!$drdLabel) {
+            $drdLabel = $emptyString;
+        }
+
+        if (!$drdLabel) {
+            $drdLabel = ($CatOrTag == 'cat' ? self::config()->get('categories_active') : self::config()->get('tags_active'));
+        }
+
         $DrDown->setEmptyString($drdLabel);
 
         $ctrl = Controller::curr();

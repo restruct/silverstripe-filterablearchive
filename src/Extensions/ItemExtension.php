@@ -89,6 +89,7 @@ class ItemExtension extends Extension
             $datefield = Config::inst()->get($Holder->className, 'managed_object_date_field');
             return $this->owner->dbObject($datefield);
         }
+
         return null;
     }
 
@@ -96,13 +97,17 @@ class ItemExtension extends Extension
     {
         $Related = ArrayList::create();
         $HolderPage = $this->getHolderPage();
-
         // First by tags (= cross connections), then by category (= same type of items)
-        if ($HolderPage->TagsActive()) foreach ($this->owner->Tags() as $Tag) {
-            $Related->merge($Tag->Items()->exclude('ID', $this->owner->ID));
+        if ($HolderPage->TagsActive()) {
+            foreach ($this->owner->Tags() as $Tag) {
+                $Related->merge($Tag->Items()->exclude('ID', $this->owner->ID));
+            }
         }
-        if ($HolderPage->CategoriesActive()) foreach ($this->owner->Categories() as $Cat) {
-            $Related->merge($Cat->Items()->exclude('ID', $this->owner->ID));
+
+        if ($HolderPage->CategoriesActive()) {
+            foreach ($this->owner->Categories() as $Cat) {
+                $Related->merge($Cat->Items()->exclude('ID', $this->owner->ID));
+            }
         }
 
         return $Related;
