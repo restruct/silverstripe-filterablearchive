@@ -3,7 +3,6 @@
 namespace Restruct\SilverStripe\FilterableArchive;
 
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\Forms\Filter;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TextField;

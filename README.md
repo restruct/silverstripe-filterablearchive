@@ -52,4 +52,4 @@ Newsgrid module (manage newsitems from a gridfield), applies this module
 
 ## Requirements
 
-* SilverStripe 3.0 or newer
+* SilverStripe 6.0 or newer

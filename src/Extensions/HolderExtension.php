@@ -3,7 +3,7 @@
 namespace Restruct\SilverStripe\FilterableArchive\Extensions;
 
 use Restruct\SilverStripe\FilterableArchive\FilterProp;
-use SilverStripe\CMS\Model\SiteTreeExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
@@ -26,8 +26,7 @@ use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Control\Controller;
 
-class HolderExtension
-    extends SiteTreeExtension
+class HolderExtension extends Extension
 {
     use Configurable;
 

@@ -4,41 +4,37 @@ namespace Restruct\SilverStripe\FilterableArchive\Extensions;
 
 use Restruct\SilverStripe\FilterableArchive\FilterPropRelation;
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\CMS\Model\SiteTreeExtension;
-use SilverStripe\Dev\Debug;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\DateField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\ORM\ArrayList;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\TagField\TagField;
-use SilverStripe\Control\Controller;
 
-class ItemExtension
-    extends SiteTreeExtension
+class ItemExtension extends Extension
 {
     // This same many_many may also exist on other classes
     private static $many_many = [
         "Categories" => [
             'through' => FilterPropRelation::class,
-            'from' => 'Item',
-            'to' => 'Category',
+            'from'    => 'Item',
+            'to'      => 'Category',
         ],
-        "Tags" => [
+        "Tags"       => [
             'through' => FilterPropRelation::class,
-            'from' => 'Item',
-            'to' => 'Tag',
+            'from'    => 'Item',
+            'to'      => 'Tag',
         ],
     ];
 
     public function updateCMSFields(FieldList $fields)
     {
-        parent::updateCMSFields($fields);
         $HolderPage = $this->getHolderPage();
 
         // Add Date field (if date archive active AND not using Created or LastUpdated)
         $dateFieldName = $this->getDateField()->getName();
-        if (    $HolderPage && $HolderPage->ArchiveActive()
-                && $dateFieldName && ! in_array($dateFieldName, ['Created', 'LastEdited'])
+        if ($HolderPage && $HolderPage->ArchiveActive()
+            && $dateFieldName && !in_array($dateFieldName, ['Created', 'LastEdited'])
         ) {
             $dateField = DateField::create($dateFieldName);
             $fields->insertbefore("Content", $dateField);
@@ -78,7 +74,7 @@ class ItemExtension
     public function getHolderPage()
     {
         /** @var SiteTree $Parent */
-        while($Parent = $this->owner->Parent()) {
+        while ($Parent = $this->owner->Parent()) {
             if ($Parent->hasExtension(HolderExtension::class)) {
                 return $Parent;
             }
@@ -89,7 +85,7 @@ class ItemExtension
 
     public function getDateField()
     {
-        if($Holder = $this->owner->getHolderPage()){
+        if ($Holder = $this->owner->getHolderPage()) {
             $datefield = Config::inst()->get($Holder->className, 'managed_object_date_field');
             return $this->owner->dbObject($datefield);
         }
@@ -102,11 +98,11 @@ class ItemExtension
         $HolderPage = $this->getHolderPage();
 
         // First by tags (= cross connections), then by category (= same type of items)
-        if($HolderPage->TagsActive()) foreach ($this->owner->Tags() as $Tag){
-            $Related->merge( $Tag->Items()->exclude('ID', $this->owner->ID) );
+        if ($HolderPage->TagsActive()) foreach ($this->owner->Tags() as $Tag) {
+            $Related->merge($Tag->Items()->exclude('ID', $this->owner->ID));
         }
-        if($HolderPage->CategoriesActive()) foreach ($this->owner->Categories() as $Cat){
-            $Related->merge( $Cat->Items()->exclude('ID', $this->owner->ID) );
+        if ($HolderPage->CategoriesActive()) foreach ($this->owner->Categories() as $Cat) {
+            $Related->merge($Cat->Items()->exclude('ID', $this->owner->ID));
         }
 
         return $Related;

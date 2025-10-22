@@ -11,9 +11,9 @@
   ],
   "authors": [ { "name": "Restruct", "email": "dev@restruct.nl", "homepage": "https://restruct.nl" } ],
   "require": {
-    "silverstripe/vendor-plugin": "^2",
-    "silverstripe/framework": "^4 || ^5",
-    "silverstripe/tagfield": "^3"
+    "silverstripe/vendor-plugin": "^3",
+    "silverstripe/framework": "^6",
+    "silverstripe/tagfield": "^4"
   },
   "extra": {
     "installer-name": "filterablearchive"

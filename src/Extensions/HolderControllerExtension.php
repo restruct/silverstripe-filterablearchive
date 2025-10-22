@@ -2,16 +2,11 @@
 
 namespace Restruct\SilverStripe\FilterableArchive\Extensions;
 
-use Restruct\SilverStripe\FilterableArchive\FilterProp;
 use Restruct\SilverStripe\FilterableArchive\FilterPropRelation;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Extension;
-use SilverStripe\ORM\ArrayList;
+use SilverStripe\Model\List\PaginatedList;
 use SilverStripe\ORM\DataList;
-use SilverStripe\ORM\FieldType\DBDate;
-use SilverStripe\ORM\FieldType\DBField;
-use SilverStripe\ORM\PaginatedList;
 
 /**
  * Class FilterableArchiveHolderControllerExtension
