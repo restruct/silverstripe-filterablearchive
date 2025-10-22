@@ -107,7 +107,7 @@ class HolderExtension extends Extension
                         'day' => _t('FilterableArchive.Day', 'Day'),
                     ]);
             }
-
+            $fields->removeByName("Categories");
             $fields->addFieldsToTab($insertOnTab, $dateFields, $insertBefore);
         }
 
@@ -154,7 +154,7 @@ class HolderExtension extends Extension
                     $GFConfig
                 );
             }
-
+            $fields->removeByName("Tags");
             $fields->addFieldsToTab($insertOnTab, $tagFields, $insertBefore);
         }
     }

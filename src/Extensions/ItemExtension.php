@@ -42,6 +42,7 @@ class ItemExtension extends Extension
 
         // Add Categories field
         if ($HolderPage && $HolderPage->CategoriesActive()) {
+            $fields->removeByName("Categories");
             // Use tagfield instead (allows inline creation)
             $availableCats = $this->getHolderPage()->Categories();
             $categoriesField = new TagField(
@@ -57,6 +58,7 @@ class ItemExtension extends Extension
 
         // Add Categories field
         if ($HolderPage && $HolderPage->TagsActive()) {
+            $fields->removeByName("Tags");
             // Use tagfield instead (allows inline creation)
             $availableTags = $this->getHolderPage()->Tags();
             $tagsField = new TagField(
