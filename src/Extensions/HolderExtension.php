@@ -68,7 +68,9 @@ class HolderExtension extends Extension
      * Silverstripe 6 scaffolds SiteTree's CMS fields, including every db field and relation an
      * extension adds. updateCMSFields() below places these itself, and on purpose leaves some out
      * (the detail fields while a filter is off, ItemsPerPage while pagination_active is false), so
-     * scaffolded copies must not appear. Merged into the owner's own settings; inert on SS5.
+     * scaffolded copies must not appear. Merged into the owner's own settings; inert for SiteTree
+     * owners on SS5 (SS5 SiteTree hand-builds its fields); it DOES apply on SS5 to a non-SiteTree
+     * owner.
      */
     private static $scaffold_cms_fields_settings = [
         'ignoreFields' => [

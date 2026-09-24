@@ -31,7 +31,8 @@ class ItemExtension extends Extension
     /**
      * Silverstripe 6 scaffolds SiteTree's CMS fields, relations from extensions included.
      * updateCMSFields() below adds these two as TagFields only while the holder has the filter
-     * switched on, so a scaffolded copy must not show up while it is off. Inert on SS5.
+     * switched on, so a scaffolded copy must not show up while it is off. Inert for SiteTree owners
+     * on SS5 (SS5 SiteTree hand-builds its fields); it DOES apply on SS5 to a non-SiteTree owner.
      */
     private static $scaffold_cms_fields_settings = [
         'ignoreRelations' => [
