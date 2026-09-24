@@ -173,8 +173,8 @@ jobs:
         # Test-count guard: PHPUnit exits 0 when it finds no tests at all (measured on 9.6 and
         # 11.5), so a broken path or autoload would pass green with nothing run. The module run is
         # teed and must report exactly EXPECTED_TESTS; bump it in the same commit that adds or
-        # removes a test. The SS6 legs also pass --fail-on-empty-test-suite (PHPUnit 11; 9 has no
-        # such option, which is why the count check is the guard that covers both).
+        # removes a test. The SS6 legs also pass --fail-on-empty-test-suite; the count check is
+        # the guard that covers every leg, and also catches a suite that shrank without emptying.
         env:
           EXPECTED_TESTS: '60'
         run: |
