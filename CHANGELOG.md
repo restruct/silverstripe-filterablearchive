@@ -48,6 +48,15 @@ stay on the `2.0.x` tags.
   `symbiote/silverstripe-gridfieldextensions ^4 || ^5`, PHP `^8.1`.
 - `composer.json` carries a `funding` entry.
 
+### Removed
+
+- `templates/GridFieldAddByDBField.ss`: an orphan. Its `GridFieldAddByDBField` class was deleted
+  earlier (9a98395) and nothing in the module, in gridfieldextensions or in a known consumer theme
+  renders it.
+- `_config/upgrade.yml`: it mapped six SS3-era short names to namespaced classes that never existed
+  on this line (see Upgrading above for the real class names), and without a `---` header block its
+  `mappings:` key was loaded as ordinary config.
+
 ### Added
 
 - A behavioural test suite (`tests/`) and CI across Silverstripe 5 and 6.
