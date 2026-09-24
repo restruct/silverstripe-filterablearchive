@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.1.0 (unreleased)
+## 3.1.0 (2026-09-25)
 
 Silverstripe 5 and 6 from one line (`main`, renamed from `master`). Silverstripe 4 is not
 supported; projects on it can stay on the `2.0.x` tags.
@@ -68,8 +68,8 @@ supported; projects on it can stay on the `2.0.x` tags.
 ### Tested before release
 
 - The suite passed on PHP 8.1 with Silverstripe 5 and on PHP 8.4 with Silverstripe 6 (independent
-  verification run, 57 tests, before the non-page-owner tests were added), and with all 60 tests
-  (212 assertions) on PHP 8.3 with Silverstripe 5 (PHPUnit 9) and 6 (PHPUnit 11).
+  verification run, 57 tests, before the non-page-owner tests were added), and with all 62 tests
+  (216 assertions) on PHP 8.3 with Silverstripe 5 (PHPUnit 9) and 6 (PHPUnit 11).
 - Known consumers: 6 composer-declared consumers, plus 11 trees with a checked-in pre-Composer copy
   (none can resolve 3.1.0).
 
