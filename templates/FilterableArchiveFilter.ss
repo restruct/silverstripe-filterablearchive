@@ -13,7 +13,7 @@
 
         <% if $TagsActive %>
         <% with $FilterDropdown('tag') %> <%-- optionally supply the dropdown 'label' (emptyString) as argument --%>
-        <div class="col input-group tag-filter" <% if $FilteredTagSegment %>tag-filtering curr-tag-{$FilteredTagSegment.ATT}<% end_if %>>
+        <div class="col input-group tag-filter <% if $Up.FilteredTagSegment %>tag-filtering curr-tag-{$Up.FilteredTagSegment.ATT}<% end_if %>">
             $Me
             <% if $Up.FilteredTagSegment %>
             <a class="input-group-text text-decoration-none" href="$Up.Link" onclick="$UnsetAndSubmitOnClick">&times;</a>
@@ -24,7 +24,7 @@
 
         <% if $ArchiveActive %>
         <% with $ArchiveFilterDropdown() %> <%-- optionally supply the dropdown 'label' (emptyString) as argument --%>
-        <div class="col input-group date-filter <% if $FilteredDate %>currently-filtering curr-date-{$FilteredDate.ATT}<% end_if %>">
+        <div class="col input-group date-filter <% if $Up.FilteredDate %>currently-filtering curr-date-{$Up.FilteredDate.ATT}<% end_if %>">
              $Me
              <% if $Up.FilteredDate %>
              <a class="input-group-text text-decoration-none" href="$Up.Link" onclick="$UnsetAndSubmitOnClick">&times;</a>

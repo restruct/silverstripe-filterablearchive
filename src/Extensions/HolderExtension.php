@@ -64,6 +64,29 @@ class HolderExtension extends Extension
         "Tags" => FilterProp::class.'.TagHolderPage',
     ];
 
+    /**
+     * Silverstripe 6 scaffolds SiteTree's CMS fields, including every db field and relation an
+     * extension adds. updateCMSFields() below places these itself, and on purpose leaves some out
+     * (the detail fields while a filter is off, ItemsPerPage while pagination_active is false), so
+     * scaffolded copies must not appear. Merged into the owner's own settings; inert on SS5.
+     */
+    private static $scaffold_cms_fields_settings = [
+        'ignoreFields' => [
+            'CategoriesFilterEnabled',
+            'CategoriesTitle',
+            'TagsFilterEnabled',
+            'TagsTitle',
+            'DateFilterEnabled',
+            'DateTitle',
+            'ArchiveUnit',
+            'ItemsPerPage',
+        ],
+        'ignoreRelations' => [
+            'Categories',
+            'Tags',
+        ],
+    ];
+
     // add fields to CMS
     public function updateCMSFields(FieldList $fields)
     {
@@ -97,7 +120,7 @@ class HolderExtension extends Extension
             ];
             if($this->owner->DateFilterEnabled) {
                 $dateFields[] = TextField::create('DateTitle', _t("FilterableArchive.DateTitle", 'DateTitle'))
-                    ->setAttribute('placeholder', self::config()->get('datearchive_active'));
+                    ->setAttribute('placeholder', $this->owner->config()->get('datearchive_active'));
                 $dateFields[] = DropdownField::create(
                     'ArchiveUnit',
                     _t('FilterableArchive.ArchiveUnit', 'Archive unit'),
@@ -126,7 +149,7 @@ class HolderExtension extends Extension
             ];
             if($this->owner->CategoriesFilterEnabled) {
                 $catFields[] = TextField::create('CategoriesTitle', _t("FilterableArchive.CategoriesTitle", 'CategoriesTitle'))
-                    ->setAttribute('placeholder', self::config()->get('categories_active'));
+                    ->setAttribute('placeholder', $this->owner->config()->get('categories_active'));
                 $catFields[] = GridField::create(
                     "Categories",
                     _t("FilterableArchive.Categories", "Categories"),
@@ -146,7 +169,7 @@ class HolderExtension extends Extension
             ];
             if($this->owner->TagsFilterEnabled) {
                 $tagFields[] = TextField::create('TagsTitle', _t("FilterableArchive.TagsTitle", 'TagsTitle'))
-                    ->setAttribute('placeholder', self::config()->get('tags_active'));
+                    ->setAttribute('placeholder', $this->owner->config()->get('tags_active'));
                 $tagFields[] = GridField::create(
                     "Tags",
                     _t("FilterableArchive.Tags", "Tags"),
@@ -232,10 +255,10 @@ class HolderExtension extends Extension
         $DrDown->addExtraClass("dropdown form-select");
         $DrDown->setAttribute('onchange', "this.form.submit()");
         $DrDown->UnsetAndSubmitOnClick = sprintf("event.preventDefault(); drd = document.getElementById('%s'); drd.selectedIndex = 0; drd.onchange();", $DrDown->getName());
-        $DrDown->setEmptyString($this->owner->DateTitle ?: ($emptyString ?: self::config()->get('datearchive_active')));
+        $DrDown->setEmptyString($this->owner->DateTitle ?: ($emptyString ?: $this->owner->config()->get('datearchive_active')));
 
-        $ctrl = Controller::curr();
-        if ( $ctrl::has_extension(HolderControllerExtension::class) ) {
+        $ctrl = $this->currentController();
+        if ( $ctrl && $ctrl::has_extension(HolderControllerExtension::class) ) {
             $DrDown->setValue( $ctrl->getFilteredDate() );
         }
 
@@ -271,16 +294,32 @@ class HolderExtension extends Extension
         }
 
         if (!$drdLabel) {
-            $drdLabel = ($CatOrTag == 'cat' ? self::config()->get('categories_active') : self::config()->get('tags_active'));
+            $drdLabel = ($CatOrTag == 'cat' ? $this->owner->config()->get('categories_active') : $this->owner->config()->get('tags_active'));
         }
 
         $DrDown->setEmptyString($drdLabel);
 
-        $ctrl = Controller::curr();
-        if ( $ctrl::has_extension(HolderControllerExtension::class) ) {
+        $ctrl = $this->currentController();
+        if ( $ctrl && $ctrl::has_extension(HolderControllerExtension::class) ) {
             $DrDown->setValue( $CatOrTag == 'cat' ? $ctrl->getFilteredCatSegment() : $ctrl->getFilteredTagSegment() );
         }
 
         return $DrDown;
+    }
+
+    /**
+     * The running controller, or null when there is none (a CLI task, a queued job): the dropdowns
+     * then simply have no preselected value. Controller::curr() warns on SS5 and returns null on
+     * SS6 with an empty stack; has_curr() is deprecated in 5.4 and gone in 6, hence the branch.
+     *
+     * @return Controller|null
+     */
+    protected function currentController()
+    {
+        if (method_exists(Controller::class, 'has_curr') && !Controller::has_curr()) {
+            return null;
+        }
+
+        return Controller::curr();
     }
 }
