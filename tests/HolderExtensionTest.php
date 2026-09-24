@@ -19,6 +19,7 @@ use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\NumericField;
 use SilverStripe\Forms\TextField;
+use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\DataObject;
 use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
@@ -47,6 +48,13 @@ class HolderExtensionTest extends SapphireTest
         FAHolderController::class => [HolderControllerExtension::class],
         FAItem::class => [ItemExtension::class],
     ];
+
+    private function keySorted(array $source): array
+    {
+        ksort($source);
+
+        return $source;
+    }
 
     # ---------------------------------------------------------------- wiring and schema
 
@@ -143,6 +151,18 @@ class HolderExtensionTest extends SapphireTest
             # Exactly one field of that name: the scaffolded has_many tab must be gone
             $this->assertNull($fields->fieldByName("Root.$relation"), "the scaffolded Root.$relation tab is removed");
         }
+    }
+
+    /**
+     * Regression: lang/en.yml was keyed nl:, so an English CMS showed the raw _t() defaults
+     * ("DateTitle") instead of the English strings ("Dates label").
+     */
+    public function testEnglishLabelsLoad()
+    {
+        i18n::set_locale('en_US');
+        $fields = $this->buildArchive()->getCMSFields();
+        $this->assertSame('Dates label', $fields->dataFieldByName('DateTitle')->Title());
+        $this->assertSame('Categories label', $fields->dataFieldByName('CategoriesTitle')->Title());
     }
 
     public function testCmsFieldsGoOnTheConfiguredTab()
@@ -245,12 +265,14 @@ class HolderExtensionTest extends SapphireTest
 
         $cat = $holder->FilterDropdown('cat');
         $this->assertSame('cat', $cat->getName());
-        $this->assertEqualsCanonicalizing(['events' => 'Events', 'press' => 'Press'], $cat->getSource());
+        # assertSame on a key-sorted copy: assertEqualsCanonicalizing would ignore the keys, and the
+        # keys (URL segments) are what the filter submits
+        $this->assertSame(['events' => 'Events', 'press' => 'Press'], $this->keySorted($cat->getSource()));
         $this->assertSame('Categories', $cat->getEmptyString());
 
         $tag = $holder->FilterDropdown('tag');
         $this->assertSame('tag', $tag->getName());
-        $this->assertEqualsCanonicalizing(['blue' => 'Blue', 'green' => 'Green'], $tag->getSource());
+        $this->assertSame(['blue' => 'Blue', 'green' => 'Green'], $this->keySorted($tag->getSource()));
 
         $holder->TagsTitle = 'Labels';
         $this->assertSame('Labels', $holder->FilterDropdown('tag', 'ignored')->getEmptyString());
