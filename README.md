@@ -39,7 +39,7 @@ Then run `dev/build` (Silverstripe 5) or `sake db:build` (Silverstripe 6).
 
 | Branch | Module version | Silverstripe | PHP |
 |--------|----------------|--------------|-----|
-| `master` | `3.1.x` | `^5 \|\| ^6` | `^8.1` |
+| `main` | `3.1.x` | `^5 \|\| ^6` | `^8.1` |
 | (tags only) | `3.0.x` | `^6` | `^8.3` |
 | (tags only) | `2.0.11` | `^4 \|\| ^5` | as Silverstripe requires |
 | (tags only) | `2.0` - `2.0.10` | `^4` | as Silverstripe requires |
@@ -47,7 +47,7 @@ Then run `dev/build` (Silverstripe 5) or `sake db:build` (Silverstripe 6).
 Silverstripe 4 reached end of life in April 2025 and is no longer supported or tested here. Projects
 still on it can stay on the `2.0.x` tags, which remain available.
 
-`master` is the only maintained line: it supports every Silverstripe version this module still
+`main` is the only maintained line (renamed from `master` at 3.1.0): it supports every Silverstripe version this module still
 targets, so there is no separate maintenance branch.
 
 **`composer.json` is the source of truth** for exact constraints; this table is a quick reference.

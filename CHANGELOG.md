@@ -2,7 +2,7 @@
 
 ## 3.1.0 (unreleased)
 
-Silverstripe 5 and 6 from one line (`master`). Silverstripe 4 is not supported; projects on it can
+Silverstripe 5 and 6 from one line (`main`, renamed from `master`). Silverstripe 4 is not supported; projects on it can
 stay on the `2.0.x` tags.
 
 ### Upgrading
