@@ -8,8 +8,9 @@ use SilverStripe\Core\Extension;
 use SilverStripe\Forms\DateField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\Model\List\ArrayList;
 use SilverStripe\TagField\TagField;
+# ArrayList is NOT imported: it moved from SilverStripe\ORM (5) to SilverStripe\Model\List (6)
+# with no alias left behind, so the class name is resolved per major - see arrayListClass().
 
 class ItemExtension extends Extension
 {
@@ -27,16 +28,34 @@ class ItemExtension extends Extension
         ],
     ];
 
+    /**
+     * Silverstripe 6 scaffolds SiteTree's CMS fields, relations from extensions included.
+     * updateCMSFields() below adds these two as TagFields only while the holder has the filter
+     * switched on, so a scaffolded copy must not show up while it is off. Inert for SiteTree owners
+     * on SS5 (SS5 SiteTree hand-builds its fields); it DOES apply on SS5 to a non-SiteTree owner.
+     */
+    private static $scaffold_cms_fields_settings = [
+        'ignoreRelations' => [
+            'Categories',
+            'Tags',
+        ],
+    ];
+
     public function updateCMSFields(FieldList $fields)
     {
         $HolderPage = $this->getHolderPage();
 
         // Add Date field (if date archive active AND not using Created or LastUpdated)
-        $dateFieldName = $this->getDateField()->getName();
+        # getDateField() is null without a holder above this item, so do not dereference it blindly
+        $dbDateField = $this->getDateField();
+        $dateFieldName = $dbDateField ? $dbDateField->getName() : null;
         if ($HolderPage && $HolderPage->ArchiveActive()
             && $dateFieldName && !in_array($dateFieldName, ['Created', 'LastEdited'])
         ) {
-            $dateField = DateField::create($dateFieldName);
+//            $dateField = DateField::create($dateFieldName);
+            # The db field's own form field: a DatetimeField for a Datetime, so saving keeps the time
+            # (a plain DateField reset it to 00:00:00 on every save); DateField as the fallback
+            $dateField = $dbDateField->scaffoldFormField() ?: DateField::create($dateFieldName);
             $fields->insertbefore("Content", $dateField);
         }
 
@@ -75,11 +94,15 @@ class ItemExtension extends Extension
 
     public function getHolderPage()
     {
+        # Walk UP the tree: the loop used to re-read the same Parent() on every pass, so an item whose
+        # parent was not a holder never returned. Parent() of a root page is an empty, unsaved record.
         /** @var SiteTree $Parent */
-        while ($Parent = $this->owner->Parent()) {
+        $Parent = $this->owner->Parent();
+        while ($Parent && $Parent->exists()) {
             if ($Parent->hasExtension(HolderExtension::class)) {
                 return $Parent;
             }
+            $Parent = $Parent->Parent();
         }
 
         return null;
@@ -97,8 +120,14 @@ class ItemExtension extends Extension
 
     public function getRelatedItems()
     {
-        $Related = ArrayList::create();
+        $listClass = $this->arrayListClass();
+        $Related = $listClass::create();
         $HolderPage = $this->getHolderPage();
+        # No holder above this item: no filters, so nothing to relate by
+        if (!$HolderPage) {
+            return $Related;
+        }
+
         // First by tags (= cross connections), then by category (= same type of items)
         if ($HolderPage->TagsActive()) {
             foreach ($this->owner->Tags() as $Tag) {
@@ -112,6 +141,21 @@ class ItemExtension extends Extension
             }
         }
 
+        # An item sharing a tag AND a category (or two tags) with this one was listed once per link
+        $Related->removeDuplicates('ID');
+
         return $Related;
+    }
+
+    /**
+     * ArrayList class for the running Silverstripe major (moved to SilverStripe\Model\List in 6).
+     *
+     * @return string
+     */
+    protected function arrayListClass()
+    {
+        return class_exists('SilverStripe\\Model\\List\\ArrayList')
+            ? 'SilverStripe\\Model\\List\\ArrayList'
+            : 'SilverStripe\\ORM\\ArrayList';
     }
 }

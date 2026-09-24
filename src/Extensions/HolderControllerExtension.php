@@ -5,8 +5,9 @@ namespace Restruct\SilverStripe\FilterableArchive\Extensions;
 use Restruct\SilverStripe\FilterableArchive\FilterPropRelation;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Extension;
-use SilverStripe\Model\List\PaginatedList;
 use SilverStripe\ORM\DataList;
+# PaginatedList is NOT imported: it moved from SilverStripe\ORM (5) to SilverStripe\Model\List (6)
+# with no alias left behind, so the class name is resolved per major - see paginatedListClass().
 
 /**
  * Class FilterableArchiveHolderControllerExtension
@@ -39,7 +40,17 @@ class HolderControllerExtension extends Extension
 
     public function getFilteredDate()
     {
-        return $this->owner->request->requestVar('date') ?: $this->owner->request->param('Date');
+        $request = $this->owner->request;
+        $date = $request->requestVar('date') ?: $request->param('Date');
+        if ($date) {
+            return $date;
+        }
+
+        # Legacy route archive/$Year!/$Month/$Day (see url_handlers) still points at date(): turn its
+        # params into the same yyyy[-mm[-dd]] form, or old archive links silently show every item
+        $parts = array_filter([$request->param('Year'), $request->param('Month'), $request->param('Day')]);
+
+        return $parts ? implode('-', $parts) : null;
     }
 
     /**
@@ -130,7 +141,8 @@ class HolderControllerExtension extends Extension
      **/
     public function PaginatedItems()
     {
-        $items = PaginatedList::create($this->getFilteredArchiveItems(), $this->owner->request);
+        $listClass = $this->paginatedListClass();
+        $items = $listClass::create($this->getFilteredArchiveItems(), $this->owner->request);
         // If pagination is set to '0' then no pagination will be shown.
         if ( $this->owner->ItemsPerPage > 0 ) {
             $items->setPageLength($this->owner->ItemsPerPage);
@@ -141,4 +153,15 @@ class HolderControllerExtension extends Extension
         return $items;
     }
 
+    /**
+     * PaginatedList class for the running Silverstripe major (moved to SilverStripe\Model\List in 6).
+     *
+     * @return string
+     */
+    protected function paginatedListClass()
+    {
+        return class_exists('SilverStripe\\Model\\List\\PaginatedList')
+            ? 'SilverStripe\\Model\\List\\PaginatedList'
+            : 'SilverStripe\\ORM\\PaginatedList';
+    }
 }
