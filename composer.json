@@ -11,11 +11,22 @@
   ],
   "authors": [ { "name": "Restruct", "email": "dev@restruct.nl", "homepage": "https://restruct.nl" } ],
   "require": {
-    "silverstripe/vendor-plugin": "^3",
-    "silverstripe/framework": "^6",
-    "silverstripe/tagfield": "^4"
+    "php": "^8.1",
+    "silverstripe/vendor-plugin": "^2 || ^3",
+    "silverstripe/cms": "^5 || ^6",
+    "silverstripe/tagfield": "^3 || ^4",
+    "symbiote/silverstripe-gridfieldextensions": "^4 || ^5"
+  },
+  "require-dev": {
+    "silverstripe/recipe-testing": "^3 || ^4"
   },
   "extra": {
     "installer-name": "filterablearchive"
-  }
+  },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/restruct"
+    }
+  ]
 }
