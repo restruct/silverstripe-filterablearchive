@@ -51,6 +51,9 @@ stay on the `2.0.x` tags.
 ### Added
 
 - A behavioural test suite (`tests/`) and CI across Silverstripe 5 and 6.
+- A `LICENSE` file. The licence is unchanged (BSD-3-Clause, as `composer.json` always declared);
+  the file names the copyright holders: Michael van Schaik (Restruct), Itayi Patrick Chito-voro and
+  Bart van Irsel.
 - README: setup with the current class names, every config option, the templates and the public API.
 
 ## 3.0.2, 3.0.1, 3.0.0

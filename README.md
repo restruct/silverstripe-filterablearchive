@@ -186,3 +186,8 @@ SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit vendor/restruct/silverstripe-filterablearc
 
 CI runs the same suite against Silverstripe 5 and 6 on every push; see `.github/workflows/ci.yml`.
 Changes per release: [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+BSD-3-Clause; see [LICENSE](LICENSE). Copyright is held by Michael van Schaik (Restruct), Itayi
+Patrick Chito-voro and Bart van Irsel.
