@@ -170,25 +170,21 @@ jobs:
         #   SS5 legs run by path; phpunit.xml still supplies bootstrap and failOnWarning.
         #   Every runner is also fresh, so there is no stale manifest to begin with.
         #
-        # Test-count guard: PHPUnit exits 0 when it finds no tests at all (measured on 9.6 and
-        # 11.5), so a broken path or autoload would pass green with nothing run. The module run is
-        # teed and must report exactly EXPECTED_TESTS; bump it in the same commit that adds or
-        # removes a test. The SS6 legs also pass --fail-on-empty-test-suite; the count check is
-        # the guard that covers every leg, and also catches a suite that shrank without emptying.
-        env:
-          EXPECTED_TESTS: '60'
+        # Empty-suite guard: PHPUnit exits 0 when it finds no tests at all (measured on 9.6 and
+        # 11.5), so a broken path or autoload would pass green with nothing run. Every leg passes
+        # --fail-on-empty-test-suite, which both versions honour (exit 1 on an empty suite; on 9.6
+        # it is missing from --help but implemented). On SS5 the flag goes before the path, so
+        # flush=1 stays the trailing argument.
+        # There is deliberately no grep for "OK (N tests": PHPUnit prints "OK, but there were
+        # issues!" or "OK, but some tests were skipped!" with exit 0 instead of that banner, so a
+        # single deprecation or skip would turn such a guard red with a misleading message.
         run: |
-          set -o pipefail
           if [ "${{ matrix.silverstripe }}" = "5" ]; then
-            vendor/bin/phpunit vendor/restruct/silverstripe-filterablearchive/tests flush=1 | tee phpunit-module.log
-            vendor/bin/phpunit app/tests flush=1
+            vendor/bin/phpunit --fail-on-empty-test-suite vendor/restruct/silverstripe-filterablearchive/tests flush=1
+            vendor/bin/phpunit --fail-on-empty-test-suite app/tests flush=1
           else
-            SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --fail-on-empty-test-suite --testsuite filterablearchive | tee phpunit-module.log
+            SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --fail-on-empty-test-suite --testsuite filterablearchive
             SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --fail-on-empty-test-suite --testsuite consumer
-          fi
-          if ! grep -q "OK (${EXPECTED_TESTS} tests" phpunit-module.log; then
-            echo "::error::Expected 'OK (${EXPECTED_TESTS} tests' from the module suite; see the output above"
-            exit 1
           fi
 
       - name: Boot the app and build the database
