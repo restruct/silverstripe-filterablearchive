@@ -16,8 +16,11 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\NumericField;
+use SilverStripe\Forms\Tab;
+use SilverStripe\Forms\TabSet;
 use SilverStripe\Forms\TextField;
 use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\DataObject;
@@ -189,6 +192,52 @@ class HolderExtensionTest extends SapphireTest
             array_search('ItemsPerPage', $names),
             'ItemsPerPage is placed before Content'
         );
+    }
+
+    /**
+     * A minimal CMS field list holding one field named Categories on its own tab (standing in for a
+     * holder that defines a Categories field of its own), run once through updateCMSFields().
+     */
+    private function cmsFieldsWithOwnCategoriesField(FAHolder $holder)
+    {
+        $fields = FieldList::create(TabSet::create(
+            'Root',
+            Tab::create('Main'),
+            Tab::create('Own', TextField::create('Categories', 'Own categories field'))
+        ));
+        $holder->extend('updateCMSFields', $fields);
+
+        return $fields;
+    }
+
+    /**
+     * Issue #5: removeByName('Categories') sat inside the date-archive block, so whether a field
+     * named Categories survived depended on the date archive setting. With the categories filter
+     * switched off the module places no Categories grid, so it has no reason to remove one.
+     */
+    public function testTheDateArchiveDoesNotRemoveAnOwnCategoriesField()
+    {
+        Config::modify()->set(FAHolder::class, 'categories_active', false);
+        $fields = $this->cmsFieldsWithOwnCategoriesField($this->buildArchive());
+
+        $this->assertInstanceOf(TextField::class, $fields->fieldByName('Root.Own.Categories'), 'the own Categories field stays');
+    }
+
+    /**
+     * Issue #5, the other half: with the categories filter on, a leftover Root.Categories tab (a
+     * scaffolded has_many tab, eg where ignoreRelations does not apply) goes whatever the date
+     * archive setting, as Root.Tags already did. Placing the module's grid only displaces a
+     * same-named DATA field (FieldList::onBeforeInsert), never a tab, so this needs the removal.
+     */
+    public function testALeftoverCategoriesTabGoesWithTheDateArchiveSwitchedOff()
+    {
+        Config::modify()->set(FAHolder::class, 'datearchive_active', false);
+        $holder = $this->buildArchive();
+        $fields = FieldList::create(TabSet::create('Root', Tab::create('Main'), Tab::create('Categories')));
+        $holder->extend('updateCMSFields', $fields);
+
+        $this->assertNull($fields->fieldByName('Root.Categories'), 'the leftover Categories tab is removed');
+        $this->assertInstanceOf(GridField::class, $fields->dataFieldByName('Categories'), 'the module grid is placed');
     }
 
     # ---------------------------------------------------------------- unfiltered items

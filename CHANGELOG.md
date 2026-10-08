@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.1.1 (2026-10-08)
+
+### Fixed
+
+- **The date archive works on PostgreSQL and SQLite.** The date filter used MySQL's `YEAR()`,
+  `MONTH()` and `DAY()`, which those databases do not have, so filtering by date failed there
+  (#4). It now matches the chosen year, month or day as a date range on
+  `managed_object_date_field`, which also lets the database use an index on that field. Results on
+  MySQL/MariaDB are unchanged for every date the archive dropdown and its URLs produce. A date that
+  names no real period (month 13, 30 February, not a number, a day without a month, or a year
+  outside 1000-9998) matches nothing.
+- **Whether a field or tab named `Categories` is removed from the holder's CMS fields no longer
+  depends on the date archive setting** (#5). It is now removed when the categories filter is
+  available (`categories_active`), before the module places its own Categories grid, as already
+  happened for Tags. A holder with `categories_active: false` keeps a `Categories` field of its own.
+
 ## 3.1.0 (2026-09-25)
 
 Silverstripe 5 and 6 from one line (`main`, renamed from `master`). Silverstripe 4 is not

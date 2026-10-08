@@ -98,22 +98,34 @@ class HolderControllerExtension extends Extension
         if ( $this->owner->ArchiveActive() && $filteredDate ) {
             [ $year, $month, $day ] = array_pad(explode('-', (string) $filteredDate), 3, null);
 
-            $dateFilter = [];
             $dateField = Config::inst()->get($this->owner->className, 'managed_object_date_field');
-            if ($year) {
-                $dateFilter[ sprintf('YEAR("%s")', $dateField) ] = $year;
-            }
-
-            if ($month) {
-                $dateFilter[ sprintf('MONTH("%s")', $dateField) ] = $month;
-            }
-
-            if ($day) {
-                $dateFilter[ sprintf('DAY("%s")', $dateField) ] = $day;
-            }
-
-            if ( $dateFilter !== [] ) {
-                $items = $items->where($dateFilter);
+            # Was: YEAR("field") = y AND MONTH(...) = m AND DAY(...) = d, which only exists on
+            # MySQL/MariaDB (#4). The same period as a range on the stored value works on every
+            # database adapter and lets the database use an index on the date field:
+            # start of the period inclusive, start of the next period exclusive.
+            // $dateFilter = [];
+            // if ($year) {
+            //     $dateFilter[ sprintf('YEAR("%s")', $dateField) ] = $year;
+            // }
+            // if ($month) {
+            //     $dateFilter[ sprintf('MONTH("%s")', $dateField) ] = $month;
+            // }
+            // if ($day) {
+            //     $dateFilter[ sprintf('DAY("%s")', $dateField) ] = $day;
+            // }
+            // if ( $dateFilter !== [] ) {
+            //     $items = $items->where($dateFilter);
+            // }
+            $period = $this->datePeriod($year, $month, $day);
+            if ($period === null) {
+                # Names no real period (month 13, 30 February, not a number): YEAR()/MONTH()/DAY()
+                # matched no row for these either, so the result stays empty
+                $items = $items->filter('ID', -1);
+            } else {
+                $items = $items->filter([
+                    $dateField . ':GreaterThanOrEqual' => $period[0],
+                    $dateField . ':LessThan' => $period[1],
+                ]);
             }
         }
 
@@ -132,6 +144,53 @@ class HolderControllerExtension extends Extension
         }
 
         return $items;
+    }
+
+    /**
+     * The [start, end) of the period a filtered date names, as Y-m-d strings: a year, a month or a
+     * day, by how many of its parts are given. Null when the parts name no real date. A plain
+     * Y-m-d bound compares correctly against a Date as well as a Datetime field on MySQL/MariaDB,
+     * PostgreSQL and SQLite (where the stored value is text in the same sortable format).
+     *
+     * @param string|null $year
+     * @param string|null $month
+     * @param string|null $day
+     * @return string[]|null
+     */
+    protected function datePeriod($year, $month, $day)
+    {
+        # Each given part must be a plain number; a day needs its month (the URL is yyyy[-mm[-dd]])
+        foreach ([$year, $month, $day] as $part) {
+            if ($part !== null && $part !== '' && !ctype_digit((string) $part)) {
+                return null;
+            }
+        }
+        $year = (int) $year;
+        $month = ($month === null || $month === '') ? null : (int) $month;
+        $day = ($day === null || $day === '') ? null : (int) $day;
+        # Four-digit years only, and not 9999: the ORM formats each bound through DBDate, which
+        # cannot parse a year below 1000 (it throws, so date/0050 would be a server error) nor the
+        # 10000-01-01 end bound of 9999. YEAR() = such a year matched no item anyway.
+        if ($year < 1000 || $year > 9998 || ($day !== null && $month === null)) {
+            return null;
+        }
+        if ($month !== null && ($month < 1 || $month > 12)) {
+            return null;
+        }
+        if ($day !== null && !checkdate($month, $day, $year)) {
+            return null;
+        }
+
+        $start = new \DateTimeImmutable(sprintf('%04d-%02d-%02d', $year, $month ?? 1, $day ?? 1));
+        if ($day !== null) {
+            $end = $start->modify('+1 day');
+        } elseif ($month !== null) {
+            $end = $start->modify('+1 month');
+        } else {
+            $end = $start->modify('+1 year');
+        }
+
+        return [$start->format('Y-m-d'), $end->format('Y-m-d')];
     }
 
     /**
