@@ -10,11 +10,11 @@ use SilverStripe\Dev\SapphireTest;
 /**
  * Pins the ignoreRelations half of HolderExtension's scaffold_cms_fields_settings.
  *
- * updateCMSFields() calls removeByName('Categories') inside the datearchive_active block and
- * removeByName('Tags') inside the tags_active block, and removeByName() recurses into tabs. With
- * the default config those calls strip the scaffolded Root.Categories/Root.Tags tabs by
- * themselves, which masks the ignore list. Switching the block off (a documented option) leaves
- * ignoreRelations as the only thing keeping the scaffolded relation tab out, so these cases fail
+ * updateCMSFields() calls removeByName('Tags') inside the tags_active block and, since #5,
+ * removeByName('Categories') inside the categories_active block, and removeByName() recurses into
+ * tabs. With the default config those calls strip the scaffolded Root.Categories/Root.Tags tabs by
+ * themselves, which masks the ignore list. Switching THAT block off (a documented option) leaves
+ * ignoreRelations as the only thing keeping the scaffolded relation tab out, so those cases fail
  * when an entry is dropped from it.
  *
  * Uses the non-page owner so the scaffolding settings are live on SS5 as well as SS6 (see
@@ -55,8 +55,10 @@ class HolderExtensionIgnoreRelationsTest extends SapphireTest
 
     public function testNoScaffoldedCategoriesTabWhileTheDateArchiveIsSwitchedOff()
     {
-        # datearchive_active false skips the only removeByName('Categories'); with the categories
-        # filter itself disabled, updateCMSFields() places no Categories grid either
+        # Belt-and-braces since #5: removeByName('Categories') no longer sits in the datearchive_active
+        # block, so with the default categories_active it strips the tab itself and this case no
+        # longer isolates ignoreRelations (testNoScaffoldedCategoriesTabWhileCategoriesAreSwitchedOff
+        # does). Kept so the date archive switch stays covered for the scaffolded Categories tab.
         Config::modify()->set(FAPlainHolder::class, 'datearchive_active', false);
         $fields = $this->savedHolder()->getCMSFields();
 
