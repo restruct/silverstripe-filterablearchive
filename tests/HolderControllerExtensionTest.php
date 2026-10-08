@@ -178,6 +178,20 @@ class HolderControllerExtensionTest extends SapphireTest
     }
 
     /**
+     * Issue #4 regression guard: the range bounds go through DBDate when the ORM formats the filter
+     * value, and DBDate cannot parse a year below 1000 (or the 10000-01-01 end bound of year 9999)
+     * and throws. Such a date, like the other malformed forms here, must match nothing rather than
+     * turn a public date/ or archive/ URL into a server error (3.1.0 returned no items for these).
+     */
+    public function testAnOutOfRangeOrMalformedDateMatchesNothingWithoutThrowing()
+    {
+        $this->buildArchive();
+        foreach (['0050', '0001', '0999', '9999', '0000', '10000', '2024--05', '2024-05-03x'] as $date) {
+            $this->assertSame([], $this->titles($this->controllerFor(['date' => $date])->getFilteredArchiveItems()), "date=$date");
+        }
+    }
+
+    /**
      * Issue #4 pin for CI, which only runs MySQL/MariaDB: YEAR(), MONTH() and DAY() do not exist on
      * PostgreSQL or SQLite, so the date filter must not reach the database through them.
      */

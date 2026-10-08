@@ -168,7 +168,10 @@ class HolderControllerExtension extends Extension
         $year = (int) $year;
         $month = ($month === null || $month === '') ? null : (int) $month;
         $day = ($day === null || $day === '') ? null : (int) $day;
-        if ($year < 1 || $year > 9999 || ($day !== null && $month === null)) {
+        # Four-digit years only, and not 9999: the ORM formats each bound through DBDate, which
+        # cannot parse a year below 1000 (it throws, so date/0050 would be a server error) nor the
+        # 10000-01-01 end bound of 9999. YEAR() = such a year matched no item anyway.
+        if ($year < 1000 || $year > 9998 || ($day !== null && $month === null)) {
             return null;
         }
         if ($month !== null && ($month < 1 || $month > 12)) {
