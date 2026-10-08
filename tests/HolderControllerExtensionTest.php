@@ -125,6 +125,71 @@ class HolderControllerExtensionTest extends SapphireTest
         $this->assertSame(['may2024'], $this->titles($this->controllerFor(['date' => '2024-05-03'])->getFilteredArchiveItems()));
     }
 
+    /**
+     * Issue #4: the period is matched as a range on the stored value, start inclusive and the next
+     * period's start exclusive, so the last second of a period stays in and the first second of
+     * the next one stays out.
+     */
+    public function testTheDateFilterIncludesThePeriodBoundaries()
+    {
+        $this->buildArchive();
+        foreach (['newyear' => '2023-12-31 23:59:59', 'newyear2' => '2024-01-01 00:00:00', 'endmay' => '2024-05-31 23:59:59'] as $key => $date) {
+            FAItem::create(['Title' => $key, 'URLSegment' => $key, 'ParentID' => $this->holder->ID, 'Date' => $date])->write();
+        }
+
+        $this->assertEqualsCanonicalizing(['jan2023', 'newyear'], $this->titles($this->controllerFor(['date' => '2023'])->getFilteredArchiveItems()));
+        $this->assertSame(['newyear'], $this->titles($this->controllerFor(['date' => '2023-12'])->getFilteredArchiveItems()));
+        $this->assertSame(['newyear2'], $this->titles($this->controllerFor(['date' => '2024-01'])->getFilteredArchiveItems()));
+        $this->assertEqualsCanonicalizing(['may2024', 'may2024b', 'endmay'], $this->titles($this->controllerFor(['date' => '2024-05'])->getFilteredArchiveItems()));
+        $this->assertSame(['endmay'], $this->titles($this->controllerFor(['date' => '2024-05-31'])->getFilteredArchiveItems()));
+        $this->assertSame(['newyear'], $this->titles($this->controllerFor(['date' => '2023-12-31'])->getFilteredArchiveItems()));
+        # Single-digit month and day, as YEAR()/MONTH()/DAY() matched them
+        $this->assertSame(['may2024'], $this->titles($this->controllerFor(['date' => '2024-5-3'])->getFilteredArchiveItems()));
+    }
+
+    /**
+     * Issue #4: a date-only managed_object_date_field (Date, not Datetime) filters the same way.
+     */
+    public function testTheDateFilterWorksOnADateOnlyField()
+    {
+        Config::modify()->set(FAHolder::class, 'managed_object_date_field', 'PublishDate');
+        $this->buildArchive();
+        $this->items['jan2023']->PublishDate = '2022-12-31';
+        $this->items['jan2023']->write();
+        $this->items['may2024']->PublishDate = '2023-01-01';
+        $this->items['may2024']->write();
+
+        $this->assertSame(['jan2023'], $this->titles($this->controllerFor(['date' => '2022'])->getFilteredArchiveItems()));
+        $this->assertSame(['may2024'], $this->titles($this->controllerFor(['date' => '2023-01'])->getFilteredArchiveItems()));
+        $this->assertSame(['may2024'], $this->titles($this->controllerFor(['date' => '2023-01-01'])->getFilteredArchiveItems()));
+        $this->assertSame([], $this->titles($this->controllerFor(['date' => '2024'])->getFilteredArchiveItems()));
+    }
+
+    /**
+     * Issue #4: a date that names no real period matches nothing, as YEAR()/MONTH()/DAY() = x did
+     * on MySQL, rather than erroring or falling back to every item.
+     */
+    public function testADateThatNamesNoRealPeriodMatchesNothing()
+    {
+        $this->buildArchive();
+        foreach (['2024-13', '2024-00', '2024-02-30', '2024-05-32', 'abcd', '2024-ab'] as $date) {
+            $this->assertSame([], $this->titles($this->controllerFor(['date' => $date])->getFilteredArchiveItems()), "date=$date");
+        }
+    }
+
+    /**
+     * Issue #4 pin for CI, which only runs MySQL/MariaDB: YEAR(), MONTH() and DAY() do not exist on
+     * PostgreSQL or SQLite, so the date filter must not reach the database through them.
+     */
+    public function testTheDateFilterUsesNoMysqlOnlyDateFunctions()
+    {
+        $this->buildArchive();
+        $sql = $this->controllerFor(['date' => '2024-05-03'])->getFilteredArchiveItems()->sql();
+        foreach (['YEAR(', 'MONTH(', 'DAY('] as $function) {
+            $this->assertStringNotContainsString($function, strtoupper($sql));
+        }
+    }
+
     public function testDateFilterIsIgnoredWhileTheArchiveIsOff()
     {
         $this->buildArchive(['DateFilterEnabled' => false]);
