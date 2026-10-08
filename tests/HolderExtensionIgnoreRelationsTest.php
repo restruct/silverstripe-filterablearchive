@@ -63,4 +63,17 @@ class HolderExtensionIgnoreRelationsTest extends SapphireTest
         $this->assertNull($fields->fieldByName('Root.Categories'), 'no scaffolded Categories tab');
         $this->assertNull($fields->dataFieldByName('Categories'), 'no scaffolded Categories grid');
     }
+
+    public function testNoScaffoldedCategoriesTabWhileCategoriesAreSwitchedOff()
+    {
+        # Since #5, removeByName('Categories') sits inside the categories_active block (as the Tags
+        # one does), so with the default categories_active it also strips the scaffolded tab and
+        # masks the ignore list. categories_active false is the case where only ignoreRelations
+        # keeps Root.Categories out.
+        Config::modify()->set(FAPlainHolder::class, 'categories_active', false);
+        $fields = $this->savedHolder()->getCMSFields();
+
+        $this->assertNull($fields->fieldByName('Root.Categories'), 'no scaffolded Categories tab');
+        $this->assertNull($fields->dataFieldByName('Categories'), 'no scaffolded Categories grid');
+    }
 }

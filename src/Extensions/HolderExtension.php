@@ -132,7 +132,9 @@ class HolderExtension extends Extension
                         'day' => _t('FilterableArchive.Day', 'Day'),
                     ]);
             }
-            $fields->removeByName("Categories");
+            # removeByName("Categories") used to sit here, so whether a Categories field or tab was
+            # removed depended on the date archive setting (#5); it now sits in the categories block
+            // $fields->removeByName("Categories");
             $fields->addFieldsToTab($insertOnTab, $dateFields, $insertBefore);
         }
 
@@ -160,6 +162,9 @@ class HolderExtension extends Extension
                 );
             }
 
+            # As for Tags below: clear any field or (scaffolded has_many) tab named Categories before
+            # placing the module's own; adding the grid alone only displaces a same-named data field
+            $fields->removeByName("Categories");
             $fields->addFieldsToTab($insertOnTab, $catFields, $insertBefore);
         }
 
