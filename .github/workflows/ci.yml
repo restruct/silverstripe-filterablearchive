@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    name: SS${{ matrix.silverstripe }} / PHP ${{ matrix.php }}
+    name: SS${{ matrix.silverstripe }} / PHP ${{ matrix.php }}${{ matrix.db == 'sqlite' && ' / SQLite' || '' }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -35,8 +35,31 @@ jobs:
             php: '8.4'
             recipe: '^6'
             testing: '^4'
+          # SQLite legs, one per supported major. Why: the date archive filter used MySQL-only
+          # YEAR()/MONTH()/DAY() until 3.1.1 (#4). The tests that guard that fix on the MySQL legs
+          # can only check the generated SQL for those function names; MariaDB itself accepts
+          # them, so a regression to another MySQL-only construct would still pass there. Here
+          # the same suite runs against a real non-MySQL database, where such a query fails.
+          # Measured 2026-10-12: with the pre-#4 filter restored, 9 query-running tests error on
+          # SQLite with "no such function: YEAR". One PHP version per major is enough: the PHP
+          # spread is already covered by the MariaDB legs above.
+          # PostgreSQL is not covered (no CI leg, never run against it).
+          - silverstripe: '5'
+            php: '8.3'
+            recipe: '^5'
+            testing: '^3'
+            db: sqlite
+            sqlite3: '^3'
+          - silverstripe: '6'
+            php: '8.4'
+            recipe: '^6'
+            testing: '^4'
+            db: sqlite
+            sqlite3: '^4'
 
     services:
+      # Also started on the SQLite legs (a service cannot be made conditional per matrix entry);
+      # those legs simply never connect to it, because SS_DATABASE_CLASS below points elsewhere.
       database:
         # MariaDB rather than MySQL: it matches both the local dev machines and the Forge
         # servers, so a version-specific failure here means something real.
@@ -51,7 +74,11 @@ jobs:
           --health-interval=10s --health-timeout=5s --health-retries=10
 
     env:
-      SS_DATABASE_CLASS: MySQLDatabase
+      # silverstripe/sqlite3 registers SQLite3Database; it reads the directory for the database
+      # file from SS_SQLITE_DATABASE_PATH. The SS_DATABASE_SERVER/PORT/USERNAME/PASSWORD values
+      # below are ignored on those legs.
+      SS_DATABASE_CLASS: ${{ matrix.db == 'sqlite' && 'SQLite3Database' || 'MySQLDatabase' }}
+      SS_SQLITE_DATABASE_PATH: ${{ github.workspace }}/sqlite-db
       SS_DATABASE_SERVER: 127.0.0.1
       SS_DATABASE_PORT: 3306
       SS_DATABASE_USERNAME: root
@@ -69,7 +96,9 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, intl, pdo_mysql, mysqli, gd, zip, dom, xml, tokenizer, simplexml, ctype, hash, session
+          # sqlite3 and pdo_sqlite are listed explicitly for the SQLite legs rather than relying
+          # on setup-php's defaults.
+          extensions: mbstring, intl, pdo_mysql, mysqli, sqlite3, pdo_sqlite, gd, zip, dom, xml, tokenizer, simplexml, ctype, hash, session
           tools: composer:v2
           coverage: none
 
@@ -110,6 +139,11 @@ jobs:
           # will not be patched there. Composer therefore refuses to install it under the default
           # policy. Blocking is disabled HERE ONLY, in a throwaway CI host project.
           composer config policy.advisories.block false
+          # SQLite legs only: the adapter module (sqlite3 ^3 is SS5, ^4 is SS6). Added with
+          # --no-update so it resolves in the same single update as everything else.
+          if [ "${{ matrix.db }}" = "sqlite" ]; then
+            composer require --no-update --no-interaction "silverstripe/sqlite3:${{ matrix.sqlite3 }}"
+          fi
           composer update --no-interaction --no-progress
 
       - name: Configure the test suite
@@ -187,6 +221,14 @@ jobs:
             SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --fail-on-empty-test-suite --testsuite filterablearchive
             SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --fail-on-empty-test-suite --testsuite consumer
           fi
+
+      - name: Confirm the SQLite legs really ran on SQLite
+        # Without this, a SQLite leg whose SS_DATABASE_CLASS expression fell back to
+        # MySQLDatabase would pass green against the MariaDB service and test nothing new. The
+        # adapter creates <SS_DATABASE_NAME>.sqlite in SS_SQLITE_DATABASE_PATH on
+        # its first connect, which the test run above does.
+        if: matrix.db == 'sqlite'
+        run: test -f "$SS_SQLITE_DATABASE_PATH/$SS_DATABASE_NAME.sqlite"
 
       - name: Boot the app and build the database
         # The suite proves the classes behave; this proves the module does not break a real boot.
