@@ -1,13 +1,19 @@
 {
   "name": "restruct/silverstripe-filterablearchive",
-  "description": "This module decorates pages with configurable fields to filter them by. Handy for newsitems & blogs, etc.",
+  "description": "Turn a holder page's children (news, blog posts) into an archive visitors filter by date, category or tag, with pagination and related items. For Silverstripe 5 and 6.",
   "type": "silverstripe-vendormodule",
   "license": "BSD-3-Clause",
   "keywords": [
     "silverstripe",
-    "filter",
+    "silverstripe-module",
+    "silverstripe-cms",
     "archive",
-    "news"
+    "blog",
+    "categories",
+    "filter",
+    "news",
+    "pagination",
+    "tags"
   ],
   "authors": [ { "name": "Restruct", "email": "dev@restruct.nl", "homepage": "https://restruct.nl" } ],
   "require": {
