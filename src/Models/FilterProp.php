@@ -15,6 +15,13 @@ class FilterProp extends DataObject
 {
     private static $table_name = 'FilterProp';
 
+    /**
+     * Creation order, so categories and tags are listed in the order they were added: in the
+     * holder's CMS grids (which have no sort header) and the front-end filter dropdowns. Without it the order was whatever the database returned: ID order on MySQL /
+     * MariaDB by habit only, and on PostgreSQL an edited row can move to the end.
+     */
+    private static $default_sort = '"ID" ASC';
+
     private static $db = [
         'Title'      => DBVarchar::class . '(255)',
         'URLSegment' => DBVarchar::class . '(255)',

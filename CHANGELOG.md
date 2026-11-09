@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.1.2 (unreleased)
+
+### Fixed
+
+- **Categories and tags are listed in the order they were added** (`FilterProp.default_sort`,
+  `"ID" ASC`): in the holder's CMS grids and the front-end filter dropdowns. There was no sort, so
+  the order was the database's: creation order on MySQL/MariaDB in practice, but not guaranteed,
+  and on PostgreSQL an edited category could move to the end. Visible only where the database did
+  not already return creation order.
+
+### Tests
+
+- The intermittent Silverstripe 6 browser failure of the inline-category spec (#6) was a race in
+  the test helper, not row order: `saveDraft()` could return before the CMS had replaced the edit
+  form, and on Silverstripe 6 the stale form still shows the inline-added row at the top. It now
+  waits for the form to be replaced.
+
 ## 3.1.1 (2026-10-08)
 
 ### Fixed

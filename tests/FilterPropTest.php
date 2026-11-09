@@ -56,6 +56,26 @@ class FilterPropTest extends SapphireTest
         $this->assertSame($holderLink . '?tag=green', $this->props['green']->Link);
     }
 
+    /**
+     * The holder's category and tag lists (its CMS grids, the filter dropdowns) are in creation
+     * order by definition, not by the database's habit: FilterProp has a default_sort on ID. The
+     * SQL is checked because MySQL/MariaDB return ID order without an ORDER BY as well, so a
+     * comparison of rows would pass without it.
+     */
+    public function testCategoriesAndTagsAreListedInCreationOrder()
+    {
+        $this->buildArchive();
+
+        foreach (['Categories', 'Tags'] as $relation) {
+            $list = $this->holder->$relation();
+            $this->assertMatchesRegularExpression('/ORDER BY "FilterProp"\."ID" ASC\s*$/', $list->sql(), "$relation are sorted on ID");
+            $ids = $list->column('ID');
+            $sorted = $ids;
+            sort($sorted);
+            $this->assertSame($sorted, $ids);
+        }
+    }
+
     public function testLinkIsNullWithoutAHolder()
     {
         $prop = FilterProp::create(['Title' => 'Loose']);
