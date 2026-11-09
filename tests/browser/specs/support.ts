@@ -145,12 +145,22 @@ export async function openInCms(page: Page, id: number): Promise<Locator> {
 
 /** Save the page in the CMS ("Save" = write the draft) and wait for the AJAX save to come back 200. */
 export async function saveDraft(page: Page): Promise<Request> {
+    // The form on the page now. The CMS replaces it with the re-rendered one once it has handled
+    // the save response, which can be after the test sees that response.
+    const formBefore = await page.locator('form#Form_EditForm').elementHandle();
     const posted = page.waitForRequest((r) => r.method() === 'POST' && /\/admin\/pages\/edit\/EditForm/.test(r.url()));
     await page.locator('button[name="action_save"]').click();
     const request = await posted;
     expect(['xhr', 'fetch']).toContain(request.resourceType());
     expect((await request.response())?.status(), 'save answered 200').toBe(200);
     // The CMS swaps in the re-rendered form after the save.
+    // Wait for the old form to leave the page first (#6): the Title input below is visible in the
+    // old form as well, so on its own it let a spec read the pre-save DOM. On SS6 that DOM still
+    // has an inline-added grid row at the top (gridfieldextensions 5 prepends it), which is how
+    // the inline-category spec read [Interviews, Events, Press].
+    await expect
+        .poll(() => formBefore?.evaluate((el) => el.isConnected) ?? false, { message: 'the CMS replaced the edit form' })
+        .toBe(false);
     await expect(page.locator('form#Form_EditForm input[name="Title"]')).toBeVisible();
     return request;
 }
